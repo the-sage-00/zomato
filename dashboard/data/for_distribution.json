@@ -1,0 +1,10 @@
+{
+  "honest_count": 158880,
+  "rider_triggered_count": 77531,
+  "lazy_count": 30633,
+  "missing_count": 37002,
+  "honest_pct": 52.3,
+  "rider_triggered_pct": 25.5,
+  "lazy_pct": 10.1,
+  "missing_pct": 12.2
+}

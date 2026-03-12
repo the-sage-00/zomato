@@ -1,0 +1,126 @@
+[
+  {
+    "name": "Honest Cloud Kitchen",
+    "result": {
+      "archetype": "cloud_kitchen",
+      "time_slot": "dinner",
+      "for_reliability": 90,
+      "rush_level": 3,
+      "complexity": "medium",
+      "true_kpt": 16.9,
+      "baseline_prediction": 15.1,
+      "kp_prediction": 14.2,
+      "baseline_error": 1.8,
+      "kp_error": 2.7,
+      "baseline_rider_wait": 0,
+      "kp_rider_wait": 0,
+      "weights": {
+        "for": 0.369,
+        "dwell": 0.323,
+        "behavior": 0.154,
+        "akai": 0.051,
+        "external": 0.103
+      },
+      "estimates": {
+        "for": 15.1,
+        "dwell": 16.5,
+        "behavior": 9.3,
+        "akai": 13.6,
+        "external": 11.4
+      }
+    }
+  },
+  {
+    "name": "Gaming Dine-in Rush",
+    "result": {
+      "archetype": "dine_in",
+      "time_slot": "lunch",
+      "for_reliability": 15,
+      "rush_level": 9,
+      "complexity": "complex",
+      "true_kpt": 60.0,
+      "baseline_prediction": 42.0,
+      "kp_prediction": 44.9,
+      "baseline_error": 18.0,
+      "kp_error": 15.1,
+      "baseline_rider_wait": 10.0,
+      "kp_rider_wait": 7.1,
+      "weights": {
+        "for": 0.022,
+        "dwell": 0.547,
+        "behavior": 0.192,
+        "akai": 0.096,
+        "external": 0.144
+      },
+      "estimates": {
+        "for": 42.0,
+        "dwell": 62.7,
+        "behavior": 18.0,
+        "akai": 32.8,
+        "external": 22.0
+      }
+    }
+  },
+  {
+    "name": "Missing FOR Street Food",
+    "result": {
+      "archetype": "street_food",
+      "time_slot": "lunch",
+      "for_reliability": 5,
+      "rush_level": 7,
+      "complexity": "medium",
+      "true_kpt": 18.7,
+      "baseline_prediction": 13.1,
+      "kp_prediction": 18.9,
+      "baseline_error": 5.6,
+      "kp_error": 0.2,
+      "baseline_rider_wait": 0,
+      "kp_rider_wait": 0,
+      "weights": {
+        "for": 0.013,
+        "dwell": 0.738,
+        "behavior": 0.15,
+        "akai": 0.0,
+        "external": 0.1
+      },
+      "estimates": {
+        "for": 13.1,
+        "dwell": 21.0,
+        "behavior": 15.1,
+        "akai": 14.6,
+        "external": 10.4
+      }
+    }
+  },
+  {
+    "name": "Quiet QSR Morning",
+    "result": {
+      "archetype": "qsr_chain",
+      "time_slot": "morning",
+      "for_reliability": 75,
+      "rush_level": 2,
+      "complexity": "simple",
+      "true_kpt": 4.0,
+      "baseline_prediction": 4.0,
+      "kp_prediction": 5.0,
+      "baseline_error": 0.0,
+      "kp_error": 1.0,
+      "baseline_rider_wait": 0,
+      "kp_rider_wait": 0,
+      "weights": {
+        "for": 0.278,
+        "dwell": 0.298,
+        "behavior": 0.159,
+        "akai": 0.053,
+        "external": 0.212
+      },
+      "estimates": {
+        "for": 4.0,
+        "dwell": 1.9,
+        "behavior": 7.9,
+        "akai": 8.4,
+        "external": 7.5
+      }
+    }
+  }
+]

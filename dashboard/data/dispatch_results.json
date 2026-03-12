@@ -1,0 +1,34 @@
+{
+  "Baseline": {
+    "avg_rider_wait": 1.43,
+    "p90_rider_wait": 0.0,
+    "p95_rider_wait": 10.3,
+    "pct_wait_over_10": 5.1,
+    "avg_food_cool": 13.02,
+    "pct_cool_over_5": 83.8
+  },
+  "Dwell-Corrected": {
+    "avg_rider_wait": 0.99,
+    "p90_rider_wait": 0.6,
+    "p95_rider_wait": 6.55,
+    "pct_wait_over_10": 3.2,
+    "avg_food_cool": 11.76,
+    "pct_cool_over_5": 80.8
+  },
+  "KP-Lite": {
+    "avg_rider_wait": 0.87,
+    "p90_rider_wait": 0.0,
+    "p95_rider_wait": 5.49,
+    "pct_wait_over_10": 3.2,
+    "avg_food_cool": 12.33,
+    "pct_cool_over_5": 82.5
+  },
+  "KP-Full": {
+    "avg_rider_wait": 0.86,
+    "p90_rider_wait": 0.0,
+    "p95_rider_wait": 5.14,
+    "pct_wait_over_10": 3.2,
+    "avg_food_cool": 12.39,
+    "pct_cool_over_5": 82.9
+  }
+}
