@@ -338,9 +338,136 @@ def chart_tail_risk(model_results: dict):
     plt.close()
 
 
+def _export_sample_orders(orders_df, model_results):
+    archetypes = ["cloud_kitchen", "qsr_chain", "dine_in", "street_food"]
+    behaviors = ["honest", "rider_triggered", "lazy", "missing"]
+    samples = []
+    for arch in archetypes:
+        for beh in behaviors:
+            row = orders_df[(orders_df["archetype"] == arch) & (orders_df["for_behavior"] == beh)]
+            if len(row) > 0:
+                samples.append(row.iloc[0])
+            if len(samples) >= 10:
+                break
+        if len(samples) >= 10:
+            break
+    while len(samples) < 10:
+        samples.append(orders_df.sample(1, random_state=99).iloc[0])
+    bl_preds = model_results["Baseline"]["predictions"]
+    kp_preds = model_results["KP-Full"]["predictions"]
+    rows = []
+    for s in samples:
+        idx = s.name
+        for_ts = s["for_timestamp"]
+        true = s["true_kpt"]
+        gap = abs(for_ts - true) if not np.isnan(for_ts) else None
+        rows.append({
+            "order_id": int(s["order_id"]),
+            "merchant_id": int(s["merchant_id"]),
+            "archetype": s["archetype"],
+            "for_behavior": s["for_behavior"],
+            "complexity": s["complexity"],
+            "time_slot": s["time_slot"],
+            "true_kpt": round(true, 1),
+            "for_timestamp": round(for_ts, 1) if not np.isnan(for_ts) else None,
+            "for_gap": round(gap, 1) if gap is not None else None,
+            "rider_arrival": round(s["rider_arrival_time"], 1),
+            "ack_latency": round(s["ack_latency"], 1),
+            "google_busyness": round(s["google_busyness"], 2),
+            "baseline_pred": round(float(bl_preds[idx]), 1),
+            "kp_pred": round(float(kp_preds[idx]), 1),
+        })
+    with open(os.path.join(DASH_DIR, "sample_orders.json"), "w") as f:
+        json.dump(rows, f, indent=2)
+
+
+def _export_biryani_story(orders_df, model_results):
+    dine_in = orders_df[orders_df["archetype"] == "dine_in"]
+    candidates = dine_in[(dine_in["true_kpt"] > 25) & (dine_in["true_kpt"] < 45)
+                         & (dine_in["for_behavior"] == "rider_triggered")]
+    if len(candidates) == 0:
+        candidates = dine_in[(dine_in["true_kpt"] > 20) & (dine_in["true_kpt"] < 40)]
+    row = candidates.iloc[0]
+    idx = row.name
+    true_kpt = float(row["true_kpt"])
+    bl_pred = float(model_results["Baseline"]["predictions"][idx])
+    kp_pred = float(model_results["KP-Full"]["predictions"][idx])
+
+    def make_timeline(pred, label):
+        dispatch = max(pred - 4, 0)
+        rider_travel = 12
+        rider_arr = dispatch + rider_travel
+        rider_wait = max(true_kpt - rider_arr, 0)
+        food_cool = max(rider_arr - true_kpt, 0)
+        return {
+            "label": label,
+            "prediction": round(pred, 1),
+            "events": [
+                {"time": 0, "label": "Order Placed", "type": "neutral"},
+                {"time": round(dispatch, 1), "label": f"Rider Dispatched (est {pred:.0f}min)", "type": "dispatch"},
+                {"time": round(rider_arr, 1), "label": "Rider Arrives", "type": "rider"},
+                {"time": round(true_kpt, 1), "label": f"Food Ready ({true_kpt:.0f}min)", "type": "food"},
+            ],
+            "rider_wait": round(rider_wait, 1),
+            "food_cool": round(food_cool, 1),
+        }
+
+    story = {
+        "archetype": row["archetype"],
+        "merchant_id": int(row["merchant_id"]),
+        "true_kpt": round(true_kpt, 1),
+        "for_behavior": row["for_behavior"],
+        "without_kp": make_timeline(bl_pred, "WITHOUT KitchenPulse"),
+        "with_kp": make_timeline(kp_pred, "WITH KitchenPulse"),
+    }
+    with open(os.path.join(DASH_DIR, "biryani_story.json"), "w") as f:
+        json.dump(story, f, indent=2)
+
+
+def _export_for_examples(orders_df):
+    examples = []
+    for beh in ["honest", "rider_triggered", "lazy", "missing"]:
+        subset = orders_df[orders_df["for_behavior"] == beh]
+        if beh == "missing":
+            row = subset.iloc[0]
+            examples.append({
+                "behavior": beh,
+                "true_kpt": round(float(row["true_kpt"]), 1),
+                "for_timestamp": None,
+                "gap": None,
+                "rider_arrival": round(float(row["rider_arrival_time"]), 1),
+                "verdict": "No data at all",
+            })
+        else:
+            row = subset.iloc[5]
+            for_ts = float(row["for_timestamp"])
+            true = float(row["true_kpt"])
+            gap = round(for_ts - true, 1)
+            if beh == "honest":
+                verdict = f"FOR is {abs(gap):.1f}min off — reliable ✅"
+            elif beh == "rider_triggered":
+                verdict = f"FOR is {abs(gap):.1f}min EARLY — tracks rider, not food ❌"
+            else:
+                verdict = f"FOR is {abs(gap):.1f}min LATE — merchant pressed lazily ⚠️"
+            examples.append({
+                "behavior": beh,
+                "true_kpt": round(true, 1),
+                "for_timestamp": round(for_ts, 1),
+                "gap": gap,
+                "rider_arrival": round(float(row["rider_arrival_time"]), 1),
+                "verdict": verdict,
+            })
+    with open(os.path.join(DASH_DIR, "for_examples.json"), "w") as f:
+        json.dump(examples, f, indent=2)
+
+
 def export_dashboard_json(model_results, orders_df, trust_profiles, noise_results,
                           dispatch_results, scenario_results, for_scores):
     _ensure_dirs()
+
+    _export_sample_orders(orders_df, model_results)
+    _export_biryani_story(orders_df, model_results)
+    _export_for_examples(orders_df)
 
     metrics_data = {
         "models": list(model_results.keys()),

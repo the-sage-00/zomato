@@ -3,164 +3,270 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KitchenPulse — Real-Time KPT Intelligence</title>
-    <meta name="description" content="KitchenPulse Dashboard: Multi-signal kitchen prep time prediction system for food delivery optimization">
+    <title>KitchenPulse — The Story</title>
+    <meta name="description" content="KitchenPulse: Multi-signal KPT prediction that cuts delivery error by 28%">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
-    <nav id="nav">
-        <div class="nav-brand">
-            <span class="logo">🔥</span>
-            <span class="brand">KitchenPulse</span>
-            <span class="badge">v2.0</span>
-        </div>
-        <div class="nav-links">
-            <a href="#hero" class="nav-link active" data-section="hero">Overview</a>
-            <a href="#metrics" class="nav-link" data-section="metrics">Metrics</a>
-            <a href="#for-problem" class="nav-link" data-section="for-problem">FOR Problem</a>
-            <a href="#trust" class="nav-link" data-section="trust">Trust Engine</a>
-            <a href="#noise" class="nav-link" data-section="noise">Noise Lab</a>
-            <a href="#dispatch" class="nav-link" data-section="dispatch">Dispatch</a>
-            <a href="#scenarios" class="nav-link" data-section="scenarios">Scenarios</a>
-        </div>
-    </nav>
 
-    <section id="hero" class="section hero-section">
-        <div class="hero-content">
-            <h1 class="hero-title">
-                <span class="gradient-text">KitchenPulse</span>
-                <span class="subtitle">Multi-Signal Kitchen Prep Time Intelligence</span>
-            </h1>
-            <p class="hero-desc">70% of "Food Ready" button data is unreliable. KitchenPulse fuses 5 independent signals with adaptive trust weighting to predict true preparation time — no new hardware, no merchant burden.</p>
-            <div class="hero-stats" id="hero-stats">
-                <div class="stat-card stat-green">
-                    <div class="stat-value" id="stat-mae-drop">—</div>
-                    <div class="stat-label">MAE Reduction</div>
-                </div>
-                <div class="stat-card stat-blue">
-                    <div class="stat-value" id="stat-p90-drop">—</div>
-                    <div class="stat-label">P90 Error Cut</div>
-                </div>
-                <div class="stat-card stat-purple">
-                    <div class="stat-value" id="stat-orders">—</div>
-                    <div class="stat-label">Orders Simulated</div>
-                </div>
-                <div class="stat-card stat-orange">
-                    <div class="stat-value" id="stat-merchants">1,000</div>
-                    <div class="stat-label">Merchants</div>
-                </div>
-            </div>
-        </div>
-    </section>
+<!-- NAV -->
+<nav id="nav">
+    <div class="nav-brand">
+        <span class="logo">🍳</span>
+        <span class="brand">KitchenPulse</span>
+        <span class="badge">TEAM ESCAPE</span>
+    </div>
+    <div class="nav-links">
+        <a href="#hero" class="nav-link active" data-section="hero">Problem</a>
+        <a href="#data" class="nav-link" data-section="data">Data</a>
+        <a href="#for-problem" class="nav-link" data-section="for-problem">FOR</a>
+        <a href="#solution" class="nav-link" data-section="solution">Solution</a>
+        <a href="#results" class="nav-link" data-section="results">Results</a>
+        <a href="#biryani" class="nav-link" data-section="biryani">Impact</a>
+        <a href="#science" class="nav-link" data-section="science">Science</a>
+    </div>
+</nav>
 
-    <section id="metrics" class="section">
-        <h2 class="section-title">Model Comparison</h2>
-        <p class="section-desc">Progressive improvement: Baseline → Dwell-Corrected → KP-Lite → KP-Full</p>
-        <div class="grid-2">
-            <div class="chart-card">
-                <h3 class="chart-title">MAE Comparison</h3>
-                <canvas id="chart-mae"></canvas>
-            </div>
-            <div class="chart-card">
-                <h3 class="chart-title">P90 Error (Worst-Case)</h3>
-                <canvas id="chart-p90"></canvas>
-            </div>
+<!-- SECTION 1: HERO — THE PROBLEM -->
+<section id="hero" class="section hero-section">
+    <div class="step-badge">CHAPTER 1</div>
+    <div class="hero-title">
+        <span class="gradient-text">70% of Food-Ready</span>
+        <span class="gradient-text">Data is Wrong.</span>
+    </div>
+    <p class="subtitle">That single button press controls ₹26,000 Cr of food deliveries.</p>
+    <p class="hero-desc">
+        Zomato relies on the <strong>FOR button</strong> (Food Order Ready) to predict kitchen prep time.
+        But merchants press it randomly, late, or only when the rider asks.
+        <strong>KitchenPulse</strong> fuses 5 independent signals through an adaptive trust engine
+        to predict true kitchen prep time — cutting P90 error by <strong>28%</strong>.
+    </p>
+    <div class="hero-stats">
+        <div class="stat-card stat-green">
+            <div class="stat-value" id="stat-mae-drop">↓14%</div>
+            <div class="stat-label">MAE Reduction</div>
         </div>
-        <div class="grid-2" style="margin-top: 1.5rem;">
-            <div class="chart-card">
-                <h3 class="chart-title">Accuracy Distribution</h3>
-                <canvas id="chart-accuracy"></canvas>
-            </div>
-            <div class="chart-card">
-                <h3 class="chart-title">Tail Risk — P90 / P95 / P99</h3>
-                <canvas id="chart-tail"></canvas>
-            </div>
+        <div class="stat-card stat-blue">
+            <div class="stat-value" id="stat-p90-drop">↓28%</div>
+            <div class="stat-label">P90 Error Drop</div>
         </div>
-        <div class="metrics-table-wrapper">
-            <table class="metrics-table" id="metrics-table">
-                <thead>
-                    <tr>
-                        <th>Metric</th>
-                        <th>Baseline</th>
-                        <th>Dwell-Corrected</th>
-                        <th>KP-Lite</th>
-                        <th>KP-Full</th>
-                    </tr>
-                </thead>
-                <tbody id="metrics-tbody"></tbody>
-            </table>
+        <div class="stat-card stat-purple">
+            <div class="stat-value" id="stat-orders">304K</div>
+            <div class="stat-label">Orders Simulated</div>
         </div>
-    </section>
-
-    <section id="for-problem" class="section">
-        <h2 class="section-title">The FOR Reliability Problem</h2>
-        <p class="section-desc">Why the "Food Ready" button cannot be trusted at face value</p>
-        <div class="grid-2">
-            <div class="chart-card">
-                <h3 class="chart-title">FOR Button Behavior Breakdown</h3>
-                <canvas id="chart-for-pie"></canvas>
-            </div>
-            <div class="chart-card for-explanation">
-                <h3 class="chart-title">How Merchants Game the FOR Button</h3>
-                <div class="for-cards" id="for-cards"></div>
-            </div>
+        <div class="stat-card stat-orange">
+            <div class="stat-value">1,000</div>
+            <div class="stat-label">Merchants Modeled</div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <section id="trust" class="section">
-        <h2 class="section-title">Adaptive Trust Engine</h2>
-        <p class="section-desc">Per-merchant signal weights that evolve with every order</p>
-        <div class="grid-2">
-            <div class="chart-card">
-                <h3 class="chart-title">Trust Weight Evolution</h3>
-                <div class="trust-selector" id="trust-selector"></div>
-                <canvas id="chart-trust-evolution"></canvas>
-            </div>
-            <div class="chart-card">
-                <h3 class="chart-title">Signal Trust by Restaurant Type</h3>
-                <canvas id="chart-archetype-heatmap"></canvas>
-            </div>
+<!-- SECTION 2: MEET THE DATA -->
+<section id="data" class="section">
+    <div class="step-badge">CHAPTER 2</div>
+    <h2 class="section-title">Meet the Data</h2>
+    <p class="section-desc">
+        We simulated 304,046 orders across 1,000 merchants spanning 4 restaurant archetypes.
+        Here's what a raw order looks like — notice the <span class="text-danger">gap</span> between
+        <strong>True KPT</strong> and <strong>FOR Timestamp</strong>.
+    </p>
+
+    <div class="data-stats-row">
+        <div class="mini-stat"><span class="mini-val">304,046</span><span class="mini-label">Orders</span></div>
+        <div class="mini-stat"><span class="mini-val">1,000</span><span class="mini-label">Merchants</span></div>
+        <div class="mini-stat"><span class="mini-val">4</span><span class="mini-label">Archetypes</span></div>
+        <div class="mini-stat"><span class="mini-val">5</span><span class="mini-label">Signals</span></div>
+        <div class="mini-stat"><span class="mini-val">SEED=42</span><span class="mini-label">Reproducible</span></div>
+    </div>
+
+    <div class="data-table-wrapper">
+        <table class="data-table" id="sample-data-table">
+            <thead>
+                <tr>
+                    <th>Archetype</th>
+                    <th>Behavior</th>
+                    <th>True KPT</th>
+                    <th>FOR Timestamp</th>
+                    <th>FOR Gap</th>
+                    <th>Rider Arrival</th>
+                    <th>Ack Latency</th>
+                </tr>
+            </thead>
+            <tbody id="sample-tbody"></tbody>
+        </table>
+    </div>
+</section>
+
+<!-- SECTION 3: THE FOR PROBLEM -->
+<section id="for-problem" class="section">
+    <div class="step-badge">CHAPTER 3</div>
+    <h2 class="section-title">The FOR Reliability Problem</h2>
+    <p class="section-desc">
+        The "Food Order Ready" button is Zomato's ground truth for kitchen prep time.
+        But our analysis reveals <strong>4 distinct merchant behaviors</strong>, and only ~30% are honest.
+    </p>
+
+    <div class="grid-2">
+        <div class="chart-card">
+            <div class="chart-title">FOR Behavior Distribution</div>
+            <canvas id="chart-for-pie" height="280"></canvas>
         </div>
-    </section>
-
-    <section id="noise" class="section">
-        <h2 class="section-title">Label Noise Experiment</h2>
-        <p class="section-desc">Scientific proof: data corruption destroys model accuracy</p>
-        <div class="chart-card chart-wide">
-            <h3 class="chart-title">Label Noise vs. Model Error</h3>
-            <canvas id="chart-noise"></canvas>
+        <div class="chart-card">
+            <div class="chart-title">Real Examples: FOR vs True KPT</div>
+            <div id="for-examples-container"></div>
         </div>
-    </section>
+    </div>
 
-    <section id="dispatch" class="section">
-        <h2 class="section-title">Dispatch Simulation</h2>
-        <p class="section-desc">Real-world logistics impact: rider wait & food cooling</p>
-        <div class="grid-2">
-            <div class="chart-card">
-                <h3 class="chart-title">Average Rider Wait</h3>
-                <canvas id="chart-rider-wait"></canvas>
-            </div>
-            <div class="chart-card">
-                <h3 class="chart-title">Food Cooling Time</h3>
-                <canvas id="chart-food-cool"></canvas>
-            </div>
+    <div class="for-cards" id="for-cards"></div>
+</section>
+
+<!-- SECTION 4: THE SOLUTION -->
+<section id="solution" class="section">
+    <div class="step-badge">CHAPTER 4</div>
+    <h2 class="section-title">The KitchenPulse Solution</h2>
+    <p class="section-desc">
+        Instead of relying on one unreliable signal, KitchenPulse fuses 5 independent signals
+        through an <strong>Adaptive Trust Engine</strong> that learns each merchant's reliability over time.
+    </p>
+
+    <!-- Architecture Flow -->
+    <div class="arch-flow">
+        <div class="arch-node arch-input">
+            <div class="arch-icon">📱</div>
+            <div class="arch-label">Raw FOR</div>
         </div>
-    </section>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node arch-process">
+            <div class="arch-icon">🔍</div>
+            <div class="arch-label">FOR Validator</div>
+            <div class="arch-sub">Flag suspicious</div>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node arch-process">
+            <div class="arch-icon">📊</div>
+            <div class="arch-label">Dwell Decomp</div>
+            <div class="arch-sub">GPS noise removal</div>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node arch-engine">
+            <div class="arch-icon">🧠</div>
+            <div class="arch-label">Trust Engine</div>
+            <div class="arch-sub">Adaptive weights</div>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node arch-output">
+            <div class="arch-icon">🎯</div>
+            <div class="arch-label">KP Score</div>
+            <div class="arch-sub">Final prediction</div>
+        </div>
+    </div>
 
-    <section id="scenarios" class="section">
-        <h2 class="section-title">Scenario Simulator</h2>
-        <p class="section-desc">How KitchenPulse handles diverse real-world conditions</p>
-        <div class="scenario-grid" id="scenario-grid"></div>
-    </section>
+    <div class="grid-2" style="margin-top:2rem">
+        <div class="chart-card">
+            <div class="chart-title">Trust Weight Evolution</div>
+            <div class="trust-selector" id="trust-selector"></div>
+            <canvas id="chart-trust-evolution" height="280"></canvas>
+        </div>
+        <div class="chart-card">
+            <div class="chart-title">Signal Weights by Restaurant Type</div>
+            <canvas id="chart-archetype-heatmap" height="280"></canvas>
+        </div>
+    </div>
+</section>
 
-    <footer class="footer">
-        <p>KitchenPulse v2.0 — Team Escape — Zomato Hackathon 2026</p>
-        <p class="footer-sub">304,046 orders • 1,000 merchants • 4 archetypes • 5 signals • 1 mission</p>
-    </footer>
+<!-- SECTION 5: THE RESULTS -->
+<section id="results" class="section">
+    <div class="step-badge">CHAPTER 5</div>
+    <h2 class="section-title">The Results</h2>
+    <p class="section-desc">Each model progressively improves on the baseline by fixing FOR data issues.</p>
 
-    <script src="app.js"></script>
+    <div class="grid-2">
+        <div class="chart-card">
+            <div class="chart-title">Mean Absolute Error (MAE)</div>
+            <canvas id="chart-mae" height="250"></canvas>
+        </div>
+        <div class="chart-card">
+            <div class="chart-title">P90 Worst-Case Error</div>
+            <canvas id="chart-p90" height="250"></canvas>
+        </div>
+    </div>
+
+    <div class="grid-2" style="margin-top:1.5rem">
+        <div class="chart-card">
+            <div class="chart-title">Accuracy Bands</div>
+            <canvas id="chart-accuracy" height="250"></canvas>
+        </div>
+        <div class="chart-card">
+            <div class="chart-title">Tail Risk: P90 / P95</div>
+            <canvas id="chart-tail" height="250"></canvas>
+        </div>
+    </div>
+
+    <div class="metrics-table-wrapper">
+        <table class="metrics-table">
+            <thead>
+                <tr>
+                    <th>Metric</th>
+                    <th>Baseline</th>
+                    <th>Dwell-Corrected</th>
+                    <th>KP-Lite</th>
+                    <th>KP-Full</th>
+                </tr>
+            </thead>
+            <tbody id="metrics-tbody"></tbody>
+        </table>
+    </div>
+</section>
+
+<!-- SECTION 6: THE BIRYANI STORY -->
+<section id="biryani" class="section">
+    <div class="step-badge">CHAPTER 6</div>
+    <h2 class="section-title">The Biryani Story — Real Impact</h2>
+    <p class="section-desc">
+        One order from a Dine-in restaurant shows exactly how KitchenPulse changes the delivery experience.
+    </p>
+
+    <div class="biryani-container" id="biryani-container"></div>
+
+    <div class="grid-2" style="margin-top:2rem">
+        <div class="chart-card">
+            <div class="chart-title">Rider Wait After Dispatch</div>
+            <canvas id="chart-rider-wait" height="250"></canvas>
+        </div>
+        <div class="chart-card">
+            <div class="chart-title">Food Cooling Before Pickup</div>
+            <canvas id="chart-food-cool" height="250"></canvas>
+        </div>
+    </div>
+</section>
+
+<!-- SECTION 7: THE SCIENCE -->
+<section id="science" class="section">
+    <div class="step-badge">CHAPTER 7</div>
+    <h2 class="section-title">The Science Behind It</h2>
+    <p class="section-desc">
+        We prove mathematically that label noise from unreliable FOR data directly damages ML models —
+        and KitchenPulse's trust engine is the fix.
+    </p>
+
+    <div class="chart-card chart-wide" style="margin-bottom:2rem">
+        <div class="chart-title">Label Noise Destroys Model Accuracy</div>
+        <canvas id="chart-noise" height="300"></canvas>
+    </div>
+
+    <h3 class="section-subtitle">Scenario Stress Tests</h3>
+    <div class="scenario-grid" id="scenario-grid"></div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+    <p>🍳 <strong>KitchenPulse</strong> — Data Reliability over Model Complexity</p>
+    <p class="footer-sub">Team Escape · Zomato Hackathon 2026 · Simulated 304K orders · All results reproducible (SEED=42)</p>
+</footer>
+
+<script src="app.js"></script>
 </body>
 </html>
