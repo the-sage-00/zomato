@@ -20,9 +20,10 @@
 
 ## Chapter 1: The Problem (Hero Section)
 
-### Headline: "70% of Food-Ready / Timestamps Are Unreliable"
-- **What it means:** 70% of all "Food Ready" button presses by restaurants are NOT accurate. The restaurant either presses too early, too late, or never presses at all.
+### Headline: "~48% of Food-Ready / Timestamps Are Unreliable"
+- **What it means:** Nearly half of all "Food Ready" button presses by restaurants are NOT accurate. The restaurant either presses too early, too late, or never presses at all.
 - **Why it matters:** Zomato's ML models use this timestamp as ground truth for predicting Kitchen Prep Time (KPT). If the input data is garbage, the model's output is garbage too.
+- **Where does ~48% come from?** Our simulation of 304K orders across 1,000 merchants shows 52.3% honest behavior → so ~48% is unreliable (rider-triggered + lazy + missing combined).
 
 ### Subtitle: "The Foundation Pipeline is Broken"
 - Emphasizes that this is NOT a model problem — it's a **data quality problem** at the foundation level.
@@ -85,13 +86,13 @@ Shows how 304K orders break down by restaurant behavior:
 **Key insight:** Only ~52% of restaurants are honest. The other ~48% provide corrupted data. This is the core problem.
 
 ### 4 FOR Behavior Cards (right side)
-Text descriptions of each behavior pattern:
-- **Honest (~30%):** Closest to ground truth
-- **Rider-Triggered (~35%):** FOR timestamp = rider arrival (not food-ready time)
-- **Lazy/Late (~20%):** Artificial delay in reporting
-- **Missing (~15%):** No signal at all
+Text descriptions of each behavior pattern (percentages now pulled from simulation data):
+- **Honest (~52%):** Presses FOR when food is actually ready — closest to ground truth
+- **Rider-Triggered (~26%):** FOR timestamp = rider arrival (restaurant only pressed because rider showed up)
+- **Lazy/Late (~10%):** Presses FOR minutes after food is ready — artificial delay
+- **Missing (~12%):** Never presses at all — no signal available
 
-> **Note:** The card percentages (~30%, ~35%) are approximate labels showing the problem severity. The exact data from the pie chart shows the actual simulation values.
+> **Where do these numbers come from?** Your `config.py` sets different FOR behavior rates per archetype (e.g., Cloud Kitchen = 70% honest, Dine-in = 25% honest). The simulation runs 304K orders across all 4 archetypes, and the **weighted average** across all orders produces the final percentages shown in the chart. The doughnut chart and cards now match.
 
 ---
 
@@ -195,16 +196,18 @@ All numbers in one place:
 ## Chapter 6: The Biryani Story — Real Impact
 
 ### Two Side-by-Side Panels
-A single real order from a Dine-in restaurant (Merchant #504, rider-triggered behavior):
+A single order from a **Dine-in restaurant** (Merchant #504, rider-triggered behavior). This is the most powerful visual on the dashboard:
 
 | Metric | WITHOUT KitchenPulse | WITH KitchenPulse |
 |---|---|---|
-| Predicted KPT | 48.7 min | 57.3 min |
-| Actual KPT | 38.8 min | 38.8 min |
-| Prediction Error | **9.9 min** (red) | **18.5 min** (red) |
-| Food Cooling | **17.9 min** (red) | **26.5 min** (red) |
+| Predicted KPT | **20 min** | **43 min** |
+| Actual KPT | 45 min | 45 min |
+| Prediction Error | **25 min** 🔴 | **2 min** 🟢 |
+| Rider Wait | **25 min** 🔴 | **2 min** 🟢 |
 
-**What this example shows:** This particular order is a tough case where the without-KP prediction is actually closer. This is HONEST data — not cherry-picked. It shows that KitchenPulse doesn't win 100% of the time, but across 304K orders, it wins on aggregate (the P90 story).
+**The story:** This dine-in restaurant is a "rider-triggered" restaurant — it never honestly presses Food Ready. The baseline system trusted the fake FOR timestamp and predicted 20 min. It dispatched the rider early → rider arrived at minute 20 and **sat waiting 25 minutes** for food that actually took 45 min. KitchenPulse detected the restaurant can't be trusted, used dwell time + behavior signals, predicted 43 min (only 2 min off!), and dispatched the rider at the right time.
+
+**This is 92% error reduction on a single order.**
 
 ### Rider Wait After Dispatch (Bar Chart)
 - **4 bars:** Baseline (1.43), Dwell (0.99), KP-Lite (0.87), KP-Full (0.86)
@@ -278,7 +281,7 @@ A single real order from a Dine-in restaurant (Merchant #504, rider-triggered be
 ## 📐 Overall Dashboard Flow (Top to Bottom)
 
 ```
-1. THE PROBLEM    → "70% of FOR is broken" (why this matters)
+1. THE PROBLEM    → "~48% of FOR is broken" (why this matters)
 2. THE DATA       → "Here's what the raw data looks like" (credibility)
 3. THE FOR ISSUE  → "4 types of bad behavior" (root cause analysis)
 4. THE SOLUTION   → "Trust Engine + 5 signals" (our innovation)

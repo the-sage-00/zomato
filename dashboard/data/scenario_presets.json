@@ -8,10 +8,10 @@
       "rush_level": 3,
       "complexity": "medium",
       "true_kpt": 16.9,
-      "baseline_prediction": 16.8,
-      "kp_prediction": 14.5,
-      "baseline_error": 0.1,
-      "kp_error": 2.4,
+      "baseline_prediction": 17.9,
+      "kp_prediction": 14.9,
+      "baseline_error": 1.0,
+      "kp_error": 2.0,
       "baseline_rider_wait": 0,
       "kp_rider_wait": 0,
       "weights": {
@@ -22,8 +22,8 @@
         "external": 0.103
       },
       "estimates": {
-        "for": 16.8,
-        "dwell": 15.5,
+        "for": 17.9,
+        "dwell": 15.6,
         "behavior": 9.3,
         "akai": 13.6,
         "external": 11.4
@@ -40,11 +40,11 @@
       "complexity": "complex",
       "true_kpt": 60.0,
       "baseline_prediction": 42.0,
-      "kp_prediction": 44.7,
+      "kp_prediction": 40.9,
       "baseline_error": 18.0,
-      "kp_error": 15.3,
+      "kp_error": 19.1,
       "baseline_rider_wait": 10.0,
-      "kp_rider_wait": 7.3,
+      "kp_rider_wait": 11.1,
       "weights": {
         "for": 0.022,
         "dwell": 0.547,
@@ -54,7 +54,7 @@
       },
       "estimates": {
         "for": 42.0,
-        "dwell": 62.2,
+        "dwell": 55.3,
         "behavior": 18.0,
         "akai": 32.8,
         "external": 22.0
@@ -71,9 +71,9 @@
       "complexity": "medium",
       "true_kpt": 18.7,
       "baseline_prediction": 13.1,
-      "kp_prediction": 19.3,
+      "kp_prediction": 17.7,
       "baseline_error": 5.6,
-      "kp_error": 0.5,
+      "kp_error": 1.0,
       "baseline_rider_wait": 0,
       "kp_rider_wait": 0,
       "weights": {
@@ -85,7 +85,7 @@
       },
       "estimates": {
         "for": 13.1,
-        "dwell": 21.4,
+        "dwell": 19.3,
         "behavior": 15.1,
         "akai": 14.6,
         "external": 10.4
@@ -101,10 +101,10 @@
       "rush_level": 2,
       "complexity": "simple",
       "true_kpt": 4.0,
-      "baseline_prediction": 2.5,
-      "kp_prediction": 5.6,
-      "baseline_error": 1.5,
-      "kp_error": 1.6,
+      "baseline_prediction": 2.1,
+      "kp_prediction": 4.7,
+      "baseline_error": 1.9,
+      "kp_error": 0.7,
       "baseline_rider_wait": 0,
       "kp_rider_wait": 0,
       "weights": {
@@ -115,8 +115,8 @@
         "external": 0.212
       },
       "estimates": {
-        "for": 2.5,
-        "dwell": 5.4,
+        "for": 2.1,
+        "dwell": 2.9,
         "behavior": 7.9,
         "akai": 8.4,
         "external": 7.5

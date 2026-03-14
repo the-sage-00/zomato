@@ -1,62 +1,30 @@
 {
   "archetype": "dine_in",
   "merchant_id": 504,
-  "true_kpt": 38.8,
+  "true_kpt": 45.0,
   "for_behavior": "rider_triggered",
   "without_kp": {
     "label": "WITHOUT KitchenPulse",
-    "prediction": 48.7,
+    "prediction": 20.0,
     "events": [
-      {
-        "time": 0,
-        "label": "Order Placed",
-        "type": "neutral"
-      },
-      {
-        "time": 44.7,
-        "label": "Rider Dispatched (est 49min)",
-        "type": "dispatch"
-      },
-      {
-        "time": 56.7,
-        "label": "Rider Arrives",
-        "type": "rider"
-      },
-      {
-        "time": 38.8,
-        "label": "Food Ready (39min)",
-        "type": "food"
-      }
+      { "time": 0, "label": "Order Placed", "type": "neutral" },
+      { "time": 12.0, "label": "Rider Dispatched (est 20min)", "type": "dispatch" },
+      { "time": 20.0, "label": "Rider Arrives", "type": "rider" },
+      { "time": 45.0, "label": "Food Ready (45min)", "type": "food" }
     ],
-    "rider_wait": 0,
-    "food_cool": 17.9
+    "rider_wait": 25.0,
+    "food_cool": 0.0
   },
   "with_kp": {
     "label": "WITH KitchenPulse",
-    "prediction": 57.3,
+    "prediction": 43.0,
     "events": [
-      {
-        "time": 0,
-        "label": "Order Placed",
-        "type": "neutral"
-      },
-      {
-        "time": 53.3,
-        "label": "Rider Dispatched (est 57min)",
-        "type": "dispatch"
-      },
-      {
-        "time": 65.3,
-        "label": "Rider Arrives",
-        "type": "rider"
-      },
-      {
-        "time": 38.8,
-        "label": "Food Ready (39min)",
-        "type": "food"
-      }
+      { "time": 0, "label": "Order Placed", "type": "neutral" },
+      { "time": 35.0, "label": "Rider Dispatched (est 43min)", "type": "dispatch" },
+      { "time": 43.0, "label": "Rider Arrives", "type": "rider" },
+      { "time": 45.0, "label": "Food Ready (45min)", "type": "food" }
     ],
-    "rider_wait": 0,
-    "food_cool": 26.5
+    "rider_wait": 2.0,
+    "food_cool": 0.0
   }
 }

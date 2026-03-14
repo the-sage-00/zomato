@@ -94,11 +94,16 @@ function renderFORPie() {
 
 function renderFORCards() {
     const container = document.getElementById('for-cards');
+    const d = DATA.for_distribution;
+    const h = d ? Math.round(d.honest_pct) : 52;
+    const r = d ? Math.round(d.rider_triggered_pct) : 26;
+    const l = d ? Math.round(d.lazy_pct) : 10;
+    const m = d ? Math.round(d.missing_pct) : 12;
     const cards = [
-        { cls: 'for-honest', title: '✅ Honest (~30%)', desc: 'Presses FOR when food is actually ready. Closest to ground truth.' },
-        { cls: 'for-rider', title: '🔴 Rider-Triggered (~35%)', desc: 'Presses only after rider arrives and asks — timestamp = rider arrival.' },
-        { cls: 'for-lazy', title: '🟡 Lazy/Late (~20%)', desc: 'Presses FOR minutes after food is ready — artificial delay.' },
-        { cls: 'for-missing', title: '⚪ Missing (~15%)', desc: 'Never presses FOR — no signal available at all.' },
+        { cls: 'for-honest', title: `✅ Honest (~${h}%)`, desc: 'Presses FOR when food is actually ready. Closest to ground truth.' },
+        { cls: 'for-rider', title: `🔴 Rider-Triggered (~${r}%)`, desc: 'Presses only after rider arrives and asks — timestamp = rider arrival.' },
+        { cls: 'for-lazy', title: `🟡 Lazy/Late (~${l}%)`, desc: 'Presses FOR minutes after food is ready — artificial delay.' },
+        { cls: 'for-missing', title: `⚪ Missing (~${m}%)`, desc: 'Never presses FOR — no signal available at all.' },
     ];
     container.innerHTML = cards.map(c =>
         `<div class="for-card-item ${c.cls}"><h4>${c.title}</h4><p>${c.desc}</p></div>`
@@ -292,8 +297,8 @@ function renderBiryaniTimeline() {
 
     function makePanel(timeline, cls) {
         const predError = Math.abs(timeline.prediction - story.true_kpt).toFixed(1);
-        const coolCls = timeline.food_cool > 10 ? 'bad' : 'good';
         const errCls = predError > 5 ? 'bad' : 'good';
+        const waitCls = timeline.rider_wait > 5 ? 'bad' : 'good';
         return `
             <div class="timeline-panel">
                 <div class="timeline-title ${cls}">${timeline.label}</div>
@@ -311,8 +316,8 @@ function renderBiryaniTimeline() {
                         <span class="biryani-stat-val ${errCls}">${predError} min</span>
                     </div>
                     <div class="biryani-stat">
-                        <span class="biryani-stat-label">Food Cooling</span>
-                        <span class="biryani-stat-val ${coolCls}">${timeline.food_cool} min</span>
+                        <span class="biryani-stat-label">Rider Wait</span>
+                        <span class="biryani-stat-val ${waitCls}">${timeline.rider_wait} min</span>
                     </div>
                 </div>
             </div>

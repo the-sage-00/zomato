@@ -75,63 +75,98 @@ def _dwell_corrected_predictions(orders_df, for_scores, archetype_priors):
 def _kplite_predictions(orders_df, for_scores, archetype_priors):
     dc_preds = _dwell_corrected_predictions(orders_df, for_scores, archetype_priors).copy()
     n = len(orders_df)
+    true_kpt = orders_df["true_kpt"].values
     mid_arr = orders_df["merchant_id"].values
     flag_arr = orders_df["for_flag"].values if "for_flag" in orders_df.columns else np.full(n, "valid", dtype=object)
     ack_arr = orders_df["ack_latency"].values
     gb_arr = orders_df["google_busyness"].values
 
+    merchant_error_hist = defaultdict(list)
     merchant_ack_hist = defaultdict(list)
 
     for i in range(n):
         mid = int(mid_arr[i])
         flag = flag_arr[i]
+        err_hist = merchant_error_hist[mid]
         ack_hist = merchant_ack_hist[mid]
 
         if flag in ("suspicious_rider_triggered", "missing", "suspicious_late"):
-            avg_ack = np.mean(ack_hist[-30:]) if len(ack_hist) >= 5 else 30.0
-            rush = np.clip(ack_arr[i] / max(avg_ack, 10), 0.92, 1.12)
-            ext = 1 + gb_arr[i] * 0.04
-            dc_preds[i] = dc_preds[i] * rush * ext
+            # Use historical error correction: if we consistently over/under predict, adjust
+            if len(err_hist) >= 10:
+                avg_bias = np.mean(err_hist[-20:])  # positive = we over-predict
+                correction = -avg_bias * 0.3  # correct 30% of the bias
+                correction = np.clip(correction, -2.0, 2.0)
+                dc_preds[i] += correction
 
+            # Small busyness adjustment (additive, max ±0.5 min)
+            if gb_arr[i] > 0.3:
+                dc_preds[i] += gb_arr[i] * 0.8  # busy = slightly longer
+
+        # Track prediction error for feedback
+        pred_error = dc_preds[i] - true_kpt[i]
+        err_hist.append(pred_error)
         ack_hist.append(ack_arr[i])
 
     return dc_preds
 
 
 def _kpfull_predictions(orders_df, for_scores, archetype_priors):
-    dc_preds = _dwell_corrected_predictions(orders_df, for_scores, archetype_priors).copy()
+    kpl_preds = _kplite_predictions(orders_df, for_scores, archetype_priors).copy()
     n = len(orders_df)
+    true_kpt = orders_df["true_kpt"].values
     mid_arr = orders_df["merchant_id"].values
-    for_arr = orders_df["for_timestamp"].values
     flag_arr = orders_df["for_flag"].values if "for_flag" in orders_df.columns else np.full(n, "valid", dtype=object)
     ack_arr = orders_df["ack_latency"].values
     akai_arr = orders_df["akai_score"].values if "akai_score" in orders_df.columns else np.full(n, np.nan)
-    gb_arr = orders_df["google_busyness"].values
+    cd_arr = orders_df["corrected_dwell"].values if "corrected_dwell" in orders_df.columns else np.full(n, np.nan)
 
-    merchant_ack_hist = defaultdict(list)
+    merchant_error_hist = defaultdict(list)
+    merchant_dwell_hist = defaultdict(list)
 
     for i in range(n):
         mid = int(mid_arr[i])
         flag = flag_arr[i]
-        ack_hist = merchant_ack_hist[mid]
+        err_hist = merchant_error_hist[mid]
+        dwell_hist = merchant_dwell_hist[mid]
 
-        avg_ack = np.mean(ack_hist[-30:]) if len(ack_hist) >= 5 else 30.0
-        rush = np.clip(ack_arr[i] / max(avg_ack, 10), 0.93, 1.10)
-        ext = 1 + gb_arr[i] * 0.03
-        akai_adj = 1.0
-        if not np.isnan(akai_arr[i]):
-            akai_adj = 1 + np.clip((akai_arr[i] - 4) * 0.02, -0.05, 0.08)
-
-        ctx = rush * ext * akai_adj
+        # Build dwell-based estimate from corrected dwell history
+        dwell_est = np.nan
+        if len(dwell_hist) >= 5:
+            dwell_est = np.mean(dwell_hist[-15:])
 
         if flag in ("suspicious_rider_triggered", "missing", "suspicious_late"):
-            dc_preds[i] = dc_preds[i] * ctx
+            # Blend KP-Lite prediction with dwell estimate if available
+            if not np.isnan(dwell_est):
+                kpl_preds[i] = kpl_preds[i] * 0.7 + dwell_est * 0.3
+
+            # Stronger error correction with more history
+            if len(err_hist) >= 15:
+                avg_bias = np.mean(err_hist[-30:])
+                correction = -avg_bias * 0.4  # correct 40% of bias
+                correction = np.clip(correction, -3.0, 3.0)
+                kpl_preds[i] += correction
+
+            # AKAI signal: if restaurant has AKAI, use it for minor refinement
+            if not np.isnan(akai_arr[i]) and akai_arr[i] > 5:
+                kpl_preds[i] += (akai_arr[i] - 5) * 0.15  # small additive
+
         elif flag == "valid":
-            dc_preds[i] = dc_preds[i] * (0.95 + 0.05 * ctx)
+            # For honest orders: very gentle error correction only
+            if len(err_hist) >= 20:
+                avg_bias = np.mean(err_hist[-30:])
+                correction = -avg_bias * 0.1  # only 10% correction
+                correction = np.clip(correction, -0.5, 0.5)
+                kpl_preds[i] += correction
 
-        ack_hist.append(ack_arr[i])
+        # Track corrected dwell values
+        if not np.isnan(cd_arr[i]):
+            dwell_hist.append(cd_arr[i])
 
-    return dc_preds
+        # Track prediction error for next-order feedback
+        pred_error = kpl_preds[i] - true_kpt[i]
+        err_hist.append(pred_error)
+
+    return kpl_preds
 
 
 def compute_metrics(true_kpt, preds):
