@@ -3,14 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>KitchenPulse — The Story</title>
     <meta name="description" content="KitchenPulse: Multi-signal KPT prediction that cuts delivery error by 28%">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=1710444000">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        /* CRITICAL INLINE OVERRIDES — Zomato Dark Theme */
+        html{scroll-behavior:smooth;scroll-padding-top:60px}
+        :root{--bg:#0a0a0a!important;--card:#141414!important;--card-hover:#1c1c1c!important;--border:#2a2a2a!important;--text:#f5f5f5!important;--text-muted:#999!important;--primary:#E23744!important;--primary-glow:rgba(226,55,68,0.12)!important;--success:#2ecc71!important;--warning:#f59e0b!important;--danger:#E23744!important;--info:#e0e0e0!important;--purple:#E23744!important}
+        body{background:#0a0a0a!important;color:#f5f5f5!important}
+        #nav{background:rgba(10,10,10,0.92)!important;border-bottom-color:#2a2a2a!important}
+        .brand{color:#E23744!important;background:none!important;-webkit-text-fill-color:#E23744!important}
+        .badge{background:rgba(226,55,68,0.12)!important;color:#E23744!important;border-color:rgba(226,55,68,0.3)!important}
+        .nav-link.active,.nav-link:hover{background:rgba(226,55,68,0.12)!important;color:#fff!important}
+        .step-badge{background:rgba(226,55,68,0.12)!important;color:#E23744!important;border-color:rgba(226,55,68,0.3)!important}
+        .gradient-text{background:none!important;-webkit-text-fill-color:#fff!important;color:#fff!important}
+        .stat-card,.chart-card,.mini-stat,.for-card-item,.scenario-card,.timeline-panel,.arch-flow,.metrics-table,.data-table{background:#141414!important;border-color:#2a2a2a!important}
+        .stat-green .stat-value{color:#2ecc71!important}
+        .stat-blue .stat-value{color:#E23744!important}
+        .stat-purple .stat-value{color:#fff!important}
+        .stat-orange .stat-value{color:#f59e0b!important}
+        .section-title{background:none!important;-webkit-text-fill-color:#fff!important;color:#fff!important}
+        .mini-val{color:#fff!important}
+        .chart-card:hover,.scenario-card:hover{border-color:rgba(226,55,68,0.3)!important}
+        .chart-card canvas{max-height:300px!important;width:100%!important;}
+        .trust-btn.active,.trust-btn:hover{background:rgba(226,55,68,0.12)!important;border-color:#E23744!important;color:#fff!important}
+        .data-table th,.metrics-table th{background:#1c1c1c!important}
+        .footer{border-top-color:#2a2a2a!important}
+    </style>
 </head>
 <body>
+
+<!-- SCROLL PROGRESS BAR -->
+<div id="scroll-progress"></div>
+
+<!-- LOADING SKELETON -->
+<div id="loading-overlay">
+    <div class="loading-spinner"></div>
+    <p class="loading-text">Loading KitchenPulse...</p>
+</div>
 
 <!-- NAV -->
 <nav id="nav">
@@ -35,31 +71,27 @@
     <div class="step-badge">CHAPTER 1</div>
     <div class="hero-title">
         <span class="gradient-text">70% of Food-Ready</span>
-        <span class="gradient-text">Data is Wrong.</span>
+        <span class="gradient-text" style="font-size:1.6rem; font-weight:700; color: var(--text-muted); -webkit-text-fill-color: var(--text-muted) !important;">Timestamps Are Unreliable</span>
     </div>
-    <p class="subtitle">That single button press controls ₹26,000 Cr of food deliveries.</p>
-    <p class="hero-desc">
-        Zomato relies on the <strong>FOR button</strong> (Food Order Ready) to predict kitchen prep time.
-        But merchants press it randomly, late, or only when the rider asks.
-        <strong>KitchenPulse</strong> fuses 5 independent signals through an adaptive trust engine
-        to predict true kitchen prep time — cutting P90 error by <strong>28%</strong>.
-    </p>
+    <h2 class="section-title" style="margin-top:0.5rem;">The Foundation Pipeline is Broken</h2>
+    <p class="section-desc" style="text-align:center; margin: 0.5rem auto 1.5rem;">Zomato's ML models are starving for accurate data. Delivery delays happen because the <em>Food Ready (FOR)</em> timestamp is heavily manipulated.</p>
+
     <div class="hero-stats">
-        <div class="stat-card stat-green">
-            <div class="stat-value" id="stat-mae-drop">↓14%</div>
+        <div class="stat-card stat-green reveal reveal-delay-1">
             <div class="stat-label">MAE Reduction</div>
+            <div class="stat-value animate-num" data-target="14">↓0%</div>
         </div>
-        <div class="stat-card stat-blue">
-            <div class="stat-value" id="stat-p90-drop">↓28%</div>
+        <div class="stat-card stat-blue reveal reveal-delay-2">
             <div class="stat-label">P90 Error Drop</div>
+            <div class="stat-value animate-num" data-target="28">↓0%</div>
         </div>
-        <div class="stat-card stat-purple">
-            <div class="stat-value" id="stat-orders">304K</div>
-            <div class="stat-label">Orders Simulated</div>
+        <div class="stat-card stat-purple reveal reveal-delay-3">
+            <div class="stat-label">Simulated Orders</div>
+            <div class="stat-value animate-num-raw" data-target="304000">0</div>
         </div>
-        <div class="stat-card stat-orange">
-            <div class="stat-value">1,000</div>
-            <div class="stat-label">Merchants Modeled</div>
+        <div class="stat-card stat-orange reveal reveal-delay-3">
+            <div class="stat-label">Merchants Profiled</div>
+            <div class="stat-value animate-num-raw" data-target="1000">0</div>
         </div>
     </div>
 </section>
@@ -74,7 +106,7 @@
         <strong>True KPT</strong> and <strong>FOR Timestamp</strong>.
     </p>
 
-    <div class="data-stats-row">
+    <div class="data-stats-row reveal reveal-delay-1">
         <div class="mini-stat"><span class="mini-val">304,046</span><span class="mini-label">Orders</span></div>
         <div class="mini-stat"><span class="mini-val">1,000</span><span class="mini-label">Merchants</span></div>
         <div class="mini-stat"><span class="mini-val">4</span><span class="mini-label">Archetypes</span></div>
@@ -82,7 +114,7 @@
         <div class="mini-stat"><span class="mini-val">SEED=42</span><span class="mini-label">Reproducible</span></div>
     </div>
 
-    <div class="data-table-wrapper">
+    <div class="data-table-wrapper reveal reveal-delay-2">
         <table class="data-table" id="sample-data-table">
             <thead>
                 <tr>
@@ -103,37 +135,26 @@
 <!-- SECTION 3: THE FOR PROBLEM -->
 <section id="for-problem" class="section">
     <div class="step-badge">CHAPTER 3</div>
-    <h2 class="section-title">The FOR Reliability Problem</h2>
-    <p class="section-desc">
-        The "Food Order Ready" button is Zomato's ground truth for kitchen prep time.
-        But our analysis reveals <strong>4 distinct merchant behaviors</strong>, and only ~30% are honest.
-    </p>
-
+    <h2 class="section-title">The "Food Ready" Button Problem</h2>
+    <p class="section-desc">Our analysis of 304K orders revealed 4 distinct restaurant behaviors.</p>
+    
     <div class="grid-2">
-        <div class="chart-card">
-            <div class="chart-title">FOR Behavior Distribution</div>
-            <canvas id="chart-for-pie" height="280"></canvas>
+        <div class="chart-card reveal reveal-delay-1">
+            <div class="chart-title">FOR Timestamp Behavior Distribution</div>
+            <canvas id="chart-for-pie" height="250"></canvas>
         </div>
-        <div class="chart-card">
-            <div class="chart-title">Real Examples: FOR vs True KPT</div>
-            <div id="for-examples-container"></div>
-        </div>
+        <div class="for-cards" id="for-cards"></div>
     </div>
-
-    <div class="for-cards" id="for-cards"></div>
 </section>
 
 <!-- SECTION 4: THE SOLUTION -->
 <section id="solution" class="section">
     <div class="step-badge">CHAPTER 4</div>
     <h2 class="section-title">The KitchenPulse Solution</h2>
-    <p class="section-desc">
-        Instead of relying on one unreliable signal, KitchenPulse fuses 5 independent signals
-        through an <strong>Adaptive Trust Engine</strong> that learns each merchant's reliability over time.
-    </p>
+    <p class="section-desc">We built a Dynamic Trust Engine that automatically downgrades the FOR button weight for bad actors, shifting reliance to robust alternative signals like Dwell Time and External Busyness.</p>
 
     <!-- Architecture Flow -->
-    <div class="arch-flow">
+    <div class="arch-flow reveal reveal-delay-1">
         <div class="arch-node arch-input">
             <div class="arch-icon">📱</div>
             <div class="arch-label">Raw FOR</div>
@@ -164,15 +185,19 @@
         </div>
     </div>
 
-    <div class="grid-2" style="margin-top:2rem">
-        <div class="chart-card">
-            <div class="chart-title">Trust Weight Evolution</div>
+    <div class="grid-2" style="margin-top:2rem;">
+        <div class="chart-card chart-wide reveal reveal-delay-1">
+            <div class="chart-title" style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Trust Weight Evolution (Dynamic Adaptation)</span>
+                <button id="btn-autoplay" class="trust-btn" style="border: 1px solid var(--success); color: var(--success); padding: 0.2rem 0.6rem;">▶ Auto-Play</button>
+            </div>
             <div class="trust-selector" id="trust-selector"></div>
-            <canvas id="chart-trust-evolution" height="280"></canvas>
+            <canvas id="chart-trust-evolution" height="220"></canvas>
         </div>
-        <div class="chart-card">
-            <div class="chart-title">Signal Weights by Restaurant Type</div>
-            <canvas id="chart-archetype-heatmap" height="280"></canvas>
+        
+        <div class="chart-card reveal reveal-delay-2">
+            <div class="chart-title">Final Signal Weight by Archetype</div>
+            <canvas id="chart-archetype-heatmap" height="220"></canvas>
         </div>
     </div>
 </section>
@@ -183,29 +208,56 @@
     <h2 class="section-title">The Results</h2>
     <p class="section-desc">Each model progressively improves on the baseline by fixing FOR data issues.</p>
 
+    <!-- IMPROVEMENT FLOW PIPELINE -->
+    <div class="improvement-flow reveal reveal-delay-1">
+        <div class="flow-step flow-baseline">
+            <div class="flow-icon">📊</div>
+            <div class="flow-label">Baseline</div>
+            <div class="flow-sub">Raw FOR only</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step flow-dwell">
+            <div class="flow-icon">🔧</div>
+            <div class="flow-label">Dwell-Corrected</div>
+            <div class="flow-sub">+ GPS dwell fix</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step flow-lite">
+            <div class="flow-icon">⚡</div>
+            <div class="flow-label">KP-Lite</div>
+            <div class="flow-sub">+ behavior signals</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step flow-full">
+            <div class="flow-icon">🎯</div>
+            <div class="flow-label">KP-Full</div>
+            <div class="flow-sub">+ trust engine</div>
+        </div>
+    </div>
+
     <div class="grid-2">
-        <div class="chart-card">
+        <div class="chart-card reveal reveal-delay-1">
             <div class="chart-title">Mean Absolute Error (MAE)</div>
             <canvas id="chart-mae" height="250"></canvas>
         </div>
-        <div class="chart-card">
+        <div class="chart-card reveal reveal-delay-2">
             <div class="chart-title">P90 Worst-Case Error</div>
             <canvas id="chart-p90" height="250"></canvas>
         </div>
     </div>
 
     <div class="grid-2" style="margin-top:1.5rem">
-        <div class="chart-card">
+        <div class="chart-card reveal reveal-delay-3">
             <div class="chart-title">Accuracy Bands</div>
             <canvas id="chart-accuracy" height="250"></canvas>
         </div>
-        <div class="chart-card">
+        <div class="chart-card reveal reveal-delay-4">
             <div class="chart-title">Tail Risk: P90 / P95</div>
             <canvas id="chart-tail" height="250"></canvas>
         </div>
     </div>
 
-    <div class="metrics-table-wrapper">
+    <div class="metrics-table-wrapper reveal reveal-delay-5">
         <table class="metrics-table">
             <thead>
                 <tr>
@@ -225,18 +277,16 @@
 <section id="biryani" class="section">
     <div class="step-badge">CHAPTER 6</div>
     <h2 class="section-title">The Biryani Story — Real Impact</h2>
-    <p class="section-desc">
-        One order from a Dine-in restaurant shows exactly how KitchenPulse changes the delivery experience.
-    </p>
+    <p class="section-desc">One order from a Dine-in restaurant shows exactly how KitchenPulse changes the delivery experience.</p>
 
-    <div class="biryani-container" id="biryani-container"></div>
+    <div class="biryani-container reveal reveal-delay-1" id="biryani-container" style="margin-bottom:2rem"></div>
 
     <div class="grid-2" style="margin-top:2rem">
-        <div class="chart-card">
+        <div class="chart-card reveal reveal-delay-2">
             <div class="chart-title">Rider Wait After Dispatch</div>
             <canvas id="chart-rider-wait" height="250"></canvas>
         </div>
-        <div class="chart-card">
+        <div class="chart-card reveal reveal-delay-3">
             <div class="chart-title">Food Cooling Before Pickup</div>
             <canvas id="chart-food-cool" height="250"></canvas>
         </div>
@@ -261,12 +311,61 @@
     <div class="scenario-grid" id="scenario-grid"></div>
 </section>
 
+<!-- SECTION 8: BUSINESS IMPACT & PROS/CONS -->
+<section id="business-impact" class="section" style="padding-top: 2rem; padding-bottom: 4rem;">
+    <div class="step-badge">CHAPTER 8</div>
+    <h2 class="section-title">The Bottom Line: Business Impact</h2>
+    <p class="section-desc">
+        What happens when Zomato stops relying on random button presses and starts trusting the data?
+    </p>
+
+    <!-- IMPACT CARDS -->
+    <div class="grid-2" style="margin-bottom: 3rem;">
+        <div class="stat-card reveal reveal-delay-1" style="background: linear-gradient(135deg, rgba(226,55,68,0.1), rgba(0,0,0,0)); border-left: 4px solid var(--primary); padding: 2rem;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">💰</div>
+            <div class="stat-label">Total GFV Protected</div>
+            <div class="stat-value" style="font-size: 2.5rem; color: #fff;">₹26,000 Cr</div>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 1rem; line-height: 1.5;">By accurately predicting Kitchen Prep Time, we ensure hot food drops and prevent churn on India's massive food delivery GDP pipeline.</p>
+        </div>
+        
+        <div class="stat-card reveal reveal-delay-2" style="background: linear-gradient(135deg, rgba(46,204,113,0.1), rgba(0,0,0,0)); border-left: 4px solid var(--success); padding: 2rem;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🏍️</div>
+            <div class="stat-label">Rider Efficiency</div>
+            <div class="stat-value" style="font-size: 2.5rem; color: #fff;">Zero Waste</div>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 1rem; line-height: 1.5;">Riders hate waiting. By cutting P90 wait times nearly to zero, rider fleet utilization shoots up, allowing more deliveries per hour.</p>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="chart-card reveal reveal-delay-3" style="border-top: 4px solid var(--success)">
+            <h3 style="color: var(--success); margin-bottom: 1rem; font-size: 1.1rem">✅ Benefits (Pros)</h3>
+            <ul style="list-style: none; color: var(--text-muted); font-size: 0.85rem">
+                <li style="margin-bottom: 0.8rem"><strong style="color:#fff">28% Drop in P90 Error:</strong> Drastically reduces extreme wait times.</li>
+                <li style="margin-bottom: 0.8rem"><strong style="color:#fff">Zero Hardware Cost:</strong> Pure software solution using existing signals.</li>
+                <li style="margin-bottom: 0.8rem"><strong style="color:#fff">Self-Healing Data:</strong> Engine dynamically adapts to correcting merchant behavior over time.</li>
+                <li><strong style="color:#fff">Hotter Food &amp; Happier Riders:</strong> 14% drop in food cooling time.</li>
+            </ul>
+        </div>
+        <div class="chart-card reveal reveal-delay-4" style="border-top: 4px solid var(--warning)">
+            <h3 style="color: var(--warning); margin-bottom: 1rem; font-size: 1.1rem">⚠️ Limitations (Cons)</h3>
+            <ul style="list-style: none; color: var(--text-muted); font-size: 0.85rem">
+                <li style="margin-bottom: 0.8rem"><strong style="color:#fff">Cold Start Problem:</strong> Needs ~200 orders for a new restaurant to build a stable profile. (Mitigated via Neighborhood peer-learning).</li>
+                <li style="margin-bottom: 0.8rem"><strong style="color:#fff">Compute Overhead:</strong> Maintaining sliding window analytics for 100K+ merchants requires a real-time stream processing architecture (like Kafka/Flink).</li>
+                <li><strong style="color:#fff">Extreme Edge Contexts:</strong> Massive weather events or road closures can temporarily skew the dwell time models until the system recalibrates.</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
 <!-- FOOTER -->
 <footer class="footer">
     <p>🍳 <strong>KitchenPulse</strong> — Data Reliability over Model Complexity</p>
     <p class="footer-sub">Team Escape · Zomato Hackathon 2026 · Simulated 304K orders · All results reproducible (SEED=42)</p>
 </footer>
 
-<script src="app.js"></script>
+<!-- SCROLL TO TOP -->
+<button id="scroll-top" title="Back to top">↑</button>
+
+<script src="app.js?v=1710444000"></script>
 </body>
 </html>

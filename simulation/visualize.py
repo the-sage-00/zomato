@@ -483,32 +483,46 @@ def export_dashboard_json(model_results, orders_df, trust_profiles, noise_result
         json.dump(metrics_data, f, indent=2)
 
     sample_profiles = []
-    for mid in list(trust_profiles.keys())[:50]:
-        p = trust_profiles[mid]
-        sample_profiles.append({
-            "merchant_id": mid,
-            "archetype": p["archetype"],
-            "order_count": p["order_count"],
-            "for_score": p["for_score"],
-            "gaming_detected": p["gaming_detected"],
-            "current_weights": p["current_weights"],
-            "weight_history": p["weight_history"],
-        })
+    # Sample from all 4 archetypes to ensure Signal Weights chart has data for all types
+    archetypes_for_profiles = ["cloud_kitchen", "qsr_chain", "dine_in", "street_food"]
+    per_arch_profiles = 13
+    for arch in archetypes_for_profiles:
+        count = 0
+        for mid, p in trust_profiles.items():
+            if p["archetype"] == arch:
+                sample_profiles.append({
+                    "merchant_id": mid,
+                    "archetype": p["archetype"],
+                    "order_count": p["order_count"],
+                    "for_score": p["for_score"],
+                    "gaming_detected": p["gaming_detected"],
+                    "current_weights": p["current_weights"],
+                    "weight_history": p["weight_history"],
+                })
+                count += 1
+                if count >= per_arch_profiles:
+                    break
     with open(os.path.join(DASH_DIR, "merchant_profiles.json"), "w") as f:
         json.dump(sample_profiles, f, indent=2)
 
     trust_evol = []
-    for mid, prof in trust_profiles.items():
-        if len(prof["weight_history"]) >= 4:
-            beh = orders_df[orders_df["merchant_id"] == mid]["for_behavior"].iloc[0]
-            trust_evol.append({
-                "merchant_id": mid,
-                "archetype": prof["archetype"],
-                "for_behavior": beh,
-                "weight_history": prof["weight_history"],
-            })
-            if len(trust_evol) >= 10:
-                break
+    # Sample merchants from all 4 archetypes for dashboard variety
+    archetypes_needed = ["cloud_kitchen", "qsr_chain", "dine_in", "street_food"]
+    per_arch = 3
+    for arch in archetypes_needed:
+        count = 0
+        for mid, prof in trust_profiles.items():
+            if prof["archetype"] == arch and len(prof["weight_history"]) >= 4:
+                beh = orders_df[orders_df["merchant_id"] == mid]["for_behavior"].iloc[0]
+                trust_evol.append({
+                    "merchant_id": mid,
+                    "archetype": prof["archetype"],
+                    "for_behavior": beh,
+                    "weight_history": prof["weight_history"],
+                })
+                count += 1
+                if count >= per_arch:
+                    break
     with open(os.path.join(DASH_DIR, "trust_evolution.json"), "w") as f:
         json.dump(trust_evol, f, indent=2)
 

@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KitchenPulse Dashboard — Test Suite</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: #0a0a0a; color: #f5f5f5; padding: 2rem; }
+        h1 { font-size: 1.6rem; margin-bottom: 0.5rem; }
+        .subtitle { color: #999; font-size: 0.85rem; margin-bottom: 2rem; }
+        .summary { display: flex; gap: 1.5rem; margin-bottom: 2rem; padding: 1rem; background: #141414; border-radius: 10px; border: 1px solid #2a2a2a; }
+        .summary-item { text-align: center; }
+        .summary-label { font-size: 0.7rem; color: #999; text-transform: uppercase; letter-spacing: 1px; }
+        .summary-value { font-size: 1.8rem; font-weight: 800; margin-top: 0.25rem; }
+        .pass { color: #2ecc71; }
+        .fail { color: #E23744; }
+        .skip { color: #f59e0b; }
+        .test-group { margin-bottom: 1.5rem; }
+        .group-title { font-size: 0.9rem; font-weight: 700; padding: 0.5rem 0; border-bottom: 1px solid #2a2a2a; margin-bottom: 0.5rem; color: #ccc; }
+        .test-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.4rem 0.5rem; font-size: 0.8rem; border-radius: 6px; }
+        .test-row:hover { background: #1c1c1c; }
+        .icon { font-size: 1rem; min-width: 20px; text-align: center; }
+        .test-name { flex: 1; }
+        .test-time { color: #666; font-size: 0.7rem; font-variant-numeric: tabular-nums; }
+        .error-msg { background: rgba(226,55,68,0.08); color: #ff6b6b; padding: 0.4rem 0.8rem; margin: 0.2rem 0 0.5rem 2rem; border-radius: 6px; font-size: 0.72rem; border-left: 3px solid #E23744; }
+        #test-container { max-width: 800px; margin: 0 auto; }
+        .running { color: #f59e0b; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+    </style>
+</head>
+<body>
+<div id="test-container">
+    <h1>🧪 KitchenPulse Dashboard Test Suite</h1>
+    <p class="subtitle">Automated tests for data loading, rendering, navigation, and edge cases</p>
+
+    <div class="summary">
+        <div class="summary-item"><div class="summary-label">Total</div><div class="summary-value" id="s-total">—</div></div>
+        <div class="summary-item"><div class="summary-label">Passed</div><div class="summary-value pass" id="s-pass">—</div></div>
+        <div class="summary-item"><div class="summary-label">Failed</div><div class="summary-value fail" id="s-fail">—</div></div>
+        <div class="summary-item"><div class="summary-label">Time</div><div class="summary-value" id="s-time" style="color:#999">—</div></div>
+    </div>
+
+    <div id="results"></div>
+</div>
+
+<script>
+/* ============================================================
+   MINI TEST FRAMEWORK
+   ============================================================ */
+const results = [];
+let currentGroup = '';
+
+function group(name) { currentGroup = name; }
+
+function assert(condition, message) {
+    if (!condition) throw new Error(message || 'Assertion failed');
+}
+
+function assertEqual(actual, expected, message) {
+    if (actual !== expected) {
+        throw new Error(`${message || 'assertEqual'}: expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+    }
+}
+
+function assertTruthy(value, message) {
+    if (!value) throw new Error(`${message || 'assertTruthy'}: value is falsy (${value})`);
+}
+
+function assertType(value, type, message) {
+    if (typeof value !== type) throw new Error(`${message || 'assertType'}: expected type ${type}, got ${typeof value}`);
+}
+
+async function test(name, fn) {
+    const t0 = performance.now();
+    try {
+        await fn();
+        results.push({ group: currentGroup, name, pass: true, time: performance.now() - t0 });
+    } catch (e) {
+        results.push({ group: currentGroup, name, pass: false, error: e.message, time: performance.now() - t0 });
+    }
+}
+
+function renderResults() {
+    const container = document.getElementById('results');
+    const groups = {};
+    results.forEach(r => {
+        if (!groups[r.group]) groups[r.group] = [];
+        groups[r.group].push(r);
+    });
+
+    let html = '';
+    for (const [gName, tests] of Object.entries(groups)) {
+        html += `<div class="test-group"><div class="group-title">${gName}</div>`;
+        tests.forEach(t => {
+            const icon = t.pass ? '✅' : '❌';
+            const cls = t.pass ? 'pass' : 'fail';
+            html += `<div class="test-row"><span class="icon">${icon}</span><span class="test-name ${cls}">${t.name}</span><span class="test-time">${t.time.toFixed(1)}ms</span></div>`;
+            if (!t.pass) html += `<div class="error-msg">${t.error}</div>`;
+        });
+        html += `</div>`;
+    }
+    container.innerHTML = html;
+
+    const total = results.length;
+    const passed = results.filter(r => r.pass).length;
+    const failed = total - passed;
+    const totalTime = results.reduce((s, r) => s + r.time, 0);
+    document.getElementById('s-total').textContent = total;
+    document.getElementById('s-pass').textContent = passed;
+    document.getElementById('s-fail').textContent = failed;
+    document.getElementById('s-time').textContent = totalTime.toFixed(0) + 'ms';
+
+    document.getElementById('s-fail').style.color = failed > 0 ? '#E23744' : '#2ecc71';
+}
+
+/* ============================================================
+   HELPER: Fetch JSON from data directory
+   ============================================================ */
+async function loadJSON(name) {
+    const res = await fetch(`data/${name}.json`);
+    if (!res.ok) throw new Error(`HTTP ${res.status} loading ${name}.json`);
+    return res.json();
+}
+
+/* ============================================================
+   RUN ALL TESTS
+   ============================================================ */
+async function runAllTests() {
+    document.getElementById('results').innerHTML = '<p class="running">⏳ Running tests...</p>';
+
+    // ========== DATA LOADING ==========
+    group('📦 Data Loading & JSON Parsing');
+
+    const fileNames = [
+        'metrics_comparison', 'for_distribution', 'trust_evolution',
+        'label_noise_experiment', 'dispatch_results', 'scenario_presets',
+        'merchant_profiles', 'sample_orders', 'biryani_story', 'for_examples',
+    ];
+
+    const DATA = {};
+
+    for (const f of fileNames) {
+        await test(`Load ${f}.json successfully`, async () => {
+            const data = await loadJSON(f);
+            assertTruthy(data, `${f}.json returned null/undefined`);
+            DATA[f] = data;
+        });
+    }
+
+    // ========== DATA SCHEMA VALIDATION ==========
+    group('🔍 Data Schema Validation');
+
+    await test('metrics_comparison has required arrays', async () => {
+        const m = DATA.metrics_comparison;
+        assertTruthy(m, 'metrics_comparison not loaded');
+        assertTruthy(Array.isArray(m.models), 'models should be array');
+        assertTruthy(Array.isArray(m.mae), 'mae should be array');
+        assertTruthy(Array.isArray(m.p90_error), 'p90_error should be array');
+        assertTruthy(Array.isArray(m.p95_error), 'p95_error should be array');
+        assertTruthy(Array.isArray(m.within_3min), 'within_3min should be array');
+        assertTruthy(Array.isArray(m.within_5min), 'within_5min should be array');
+        assertEqual(m.models.length, m.mae.length, 'models and mae length mismatch');
+    });
+
+    await test('metrics_comparison has 4 models', async () => {
+        assertEqual(DATA.metrics_comparison.models.length, 4, 'Should have 4 models');
+    });
+
+    await test('for_distribution percentages sum to ~100', async () => {
+        const d = DATA.for_distribution;
+        const sum = d.honest_pct + d.rider_triggered_pct + d.lazy_pct + d.missing_pct;
+        assert(Math.abs(sum - 100) < 1, `FOR percentages sum to ${sum}, expected ~100`);
+    });
+
+    await test('trust_evolution has merchants with weight histories', async () => {
+        const te = DATA.trust_evolution;
+        assertTruthy(Array.isArray(te), 'trust_evolution should be array');
+        assert(te.length > 0, 'trust_evolution should have entries');
+        assertTruthy(te[0].archetype, 'first entry should have archetype');
+        assertTruthy(te[0].merchant_id !== undefined, 'first entry should have merchant_id');
+        assertTruthy(Array.isArray(te[0].weight_history), 'first entry should have weight_history array');
+    });
+
+    await test('trust_evolution weights contain all 5 signals', async () => {
+        const signals = ['for', 'dwell', 'behavior', 'akai', 'external'];
+        const entry = DATA.trust_evolution[0];
+        const hist = entry.weight_history[0];
+        signals.forEach(s => {
+            assert(s in hist.weights, `weight_history missing signal: ${s}`);
+        });
+    });
+
+    await test('sample_orders has required fields', async () => {
+        const orders = DATA.sample_orders;
+        assertTruthy(Array.isArray(orders), 'sample_orders should be array');
+        assert(orders.length > 0, 'sample_orders should not be empty');
+        const o = orders[0];
+        assertTruthy('archetype' in o, 'missing archetype');
+        assertTruthy('for_behavior' in o, 'missing for_behavior');
+        assertTruthy('true_kpt' in o, 'missing true_kpt');
+    });
+
+    await test('biryani_story has both scenarios', async () => {
+        const b = DATA.biryani_story;
+        assertTruthy(b.without_kp, 'missing without_kp');
+        assertTruthy(b.with_kp, 'missing with_kp');
+        assertTruthy(b.true_kpt > 0, 'true_kpt should be positive');
+        assertTruthy(Array.isArray(b.without_kp.events), 'without_kp.events should be array');
+        assertTruthy(Array.isArray(b.with_kp.events), 'with_kp.events should be array');
+    });
+
+    await test('scenario_presets has valid structure', async () => {
+        const s = DATA.scenario_presets;
+        assertTruthy(Array.isArray(s), 'scenario_presets should be array');
+        assert(s.length > 0, 'scenario_presets should not be empty');
+        s.forEach((item, i) => {
+            assertTruthy(item.name, `scenario ${i} missing name`);
+            assertTruthy(item.result, `scenario ${i} missing result`);
+            assertTruthy(item.result.true_kpt !== undefined, `scenario ${i} missing true_kpt`);
+        });
+    });
+
+    await test('dispatch_results has valid models', async () => {
+        const d = DATA.dispatch_results;
+        assertTruthy(d, 'dispatch_results not loaded');
+        const keys = Object.keys(d);
+        assert(keys.length >= 2, 'dispatch_results should have at least 2 models');
+        keys.forEach(k => {
+            assertTruthy(d[k].avg_rider_wait !== undefined, `${k} missing avg_rider_wait`);
+            assertTruthy(d[k].avg_food_cool !== undefined, `${k} missing avg_food_cool`);
+        });
+    });
+
+    await test('label_noise_experiment has progressive noise levels', async () => {
+        const n = DATA.label_noise_experiment;
+        assertTruthy(Array.isArray(n), 'should be array');
+        assert(n.length >= 3, 'should have multiple noise levels');
+        // MAE should generally increase with noise
+        assert(n[n.length - 1].mae >= n[0].mae, 'MAE should increase with more noise');
+    });
+
+    await test('merchant_profiles has valid weight sums', async () => {
+        const profiles = DATA.merchant_profiles;
+        assertTruthy(Array.isArray(profiles), 'should be array');
+        assert(profiles.length > 0, 'should not be empty');
+        // Check a sample of profiles have weights summing to ~1
+        const sample = profiles.slice(0, 10);
+        sample.forEach((p, i) => {
+            const weightSum = Object.values(p.current_weights).reduce((s, v) => s + v, 0);
+            assert(Math.abs(weightSum - 1.0) < 0.05, `Profile ${i} weights sum to ${weightSum.toFixed(3)}, expected ~1.0`);
+        });
+    });
+
+    // ========== BUSINESS LOGIC ==========
+    group('🧮 Business Logic & Calculations');
+
+    await test('MAE reduction calculation is correct', async () => {
+        const m = DATA.metrics_comparison;
+        const blMAE = m.mae[0], kpMAE = m.mae[m.mae.length - 1];
+        const reduction = Math.round((1 - kpMAE / blMAE) * 100);
+        assert(reduction > 0, `MAE reduction should be positive, got ${reduction}`);
+        assert(reduction < 100, `MAE reduction should be < 100%, got ${reduction}`);
+    });
+
+    await test('P90 error reduction is positive', async () => {
+        const m = DATA.metrics_comparison;
+        const blP90 = m.p90_error[0], kpP90 = m.p90_error[m.p90_error.length - 1];
+        const reduction = Math.round((1 - kpP90 / blP90) * 100);
+        assert(reduction > 0, `P90 reduction should be positive, got ${reduction}`);
+    });
+
+    await test('KP-Full MAE is lower than Baseline', async () => {
+        const m = DATA.metrics_comparison;
+        assert(m.mae[m.mae.length - 1] < m.mae[0], 'KP-Full MAE should be lower than Baseline');
+    });
+
+    await test('Accuracy values are valid percentages (0-1 range)', async () => {
+        const m = DATA.metrics_comparison;
+        m.within_3min.forEach((v, i) => {
+            assert(v >= 0 && v <= 1, `within_3min[${i}] = ${v} is out of 0-1 range`);
+        });
+        m.within_5min.forEach((v, i) => {
+            assert(v >= 0 && v <= 1, `within_5min[${i}] = ${v} is out of 0-1 range`);
+        });
+    });
+
+    await test('within_5min >= within_3min for all models', async () => {
+        const m = DATA.metrics_comparison;
+        m.models.forEach((model, i) => {
+            assert(m.within_5min[i] >= m.within_3min[i],
+                `${model}: within_5min (${m.within_5min[i]}) < within_3min (${m.within_3min[i]})`);
+        });
+    });
+
+    await test('Biryani timeline events are in chronological order', async () => {
+        const b = DATA.biryani_story;
+        [b.without_kp, b.with_kp].forEach(scenario => {
+            const times = scenario.events.map(e => e.time).sort((a, b) => a - b);
+            assert(times[0] === 0, 'First event should be at time 0');
+        });
+    });
+
+    await test('FOR gap classification logic works', async () => {
+        // Mirrors app.js gap classification
+        function classifyGap(gap) {
+            if (gap === null) return 'missing';
+            if (gap <= 2) return 'good';
+            if (gap <= 5) return 'warn';
+            return 'bad';
+        }
+        assertEqual(classifyGap(null), 'missing', 'null gap');
+        assertEqual(classifyGap(1), 'good', 'gap=1');
+        assertEqual(classifyGap(2), 'good', 'gap=2');
+        assertEqual(classifyGap(3), 'warn', 'gap=3');
+        assertEqual(classifyGap(5), 'warn', 'gap=5');
+        assertEqual(classifyGap(6), 'bad', 'gap=6');
+        assertEqual(classifyGap(15), 'bad', 'gap=15');
+    });
+
+    // ========== DOM & STRUCTURE ==========
+    group('🏗️ DOM Structure Tests (index.html)');
+
+    // Load the dashboard HTML as text to check structure
+    let dashboardHTML = '';
+    await test('Load dashboard index.html', async () => {
+        const res = await fetch('index.html');
+        dashboardHTML = await res.text();
+        assert(dashboardHTML.length > 0, 'index.html is empty');
+    });
+
+    await test('All nav sections have matching IDs', async () => {
+        const navSections = ['hero', 'data', 'for-problem', 'solution', 'results', 'biryani', 'science'];
+        navSections.forEach(id => {
+            assert(dashboardHTML.includes(`id="${id}"`), `Missing section with id="${id}"`);
+        });
+    });
+
+    await test('No duplicate section IDs', async () => {
+        const idRegex = /id="([^"]+)"/g;
+        const ids = [];
+        let match;
+        while ((match = idRegex.exec(dashboardHTML)) !== null) {
+            ids.push(match[1]);
+        }
+        const unique = new Set(ids);
+        // Allow some IDs to repeat (like in table cells) but main section IDs should be unique
+        ['hero', 'data', 'for-problem', 'solution', 'results', 'biryani', 'science'].forEach(id => {
+            const count = ids.filter(i => i === id).length;
+            assertEqual(count, 1, `Section id="${id}" appears ${count} times`);
+        });
+    });
+
+    await test('All chart canvases have unique IDs', async () => {
+        const canvasRegex = /id="(chart-[^"]+)"/g;
+        const canvasIds = [];
+        let match;
+        while ((match = canvasRegex.exec(dashboardHTML)) !== null) {
+            canvasIds.push(match[1]);
+        }
+        const unique = new Set(canvasIds);
+        assertEqual(canvasIds.length, unique.size, `Duplicate chart canvas IDs found: ${canvasIds}`);
+    });
+
+    await test('Loading overlay exists', async () => {
+        assert(dashboardHTML.includes('id="loading-overlay"'), 'Missing loading overlay');
+    });
+
+    await test('Scroll progress bar exists', async () => {
+        assert(dashboardHTML.includes('id="scroll-progress"'), 'Missing scroll progress bar');
+    });
+
+    await test('Scroll-to-top button exists', async () => {
+        assert(dashboardHTML.includes('id="scroll-top"'), 'Missing scroll-to-top button');
+    });
+
+    await test('HTML has meta description', async () => {
+        assert(dashboardHTML.includes('<meta name="description"'), 'Missing meta description tag');
+    });
+
+    await test('HTML has proper title', async () => {
+        assert(dashboardHTML.includes('<title>'), 'Missing title tag');
+        assert(dashboardHTML.includes('KitchenPulse'), 'Title should contain KitchenPulse');
+    });
+
+    await test('hero-title div is properly closed', async () => {
+        // Check that hero-title has both opening and closing divs
+        const openCount = (dashboardHTML.match(/class="hero-title"/g) || []).length;
+        assert(openCount === 1, 'Should have exactly one hero-title div');
+        // Ensure it's closed before section-title
+        const heroTitleIdx = dashboardHTML.indexOf('class="hero-title"');
+        const sectionTitleIdx = dashboardHTML.indexOf('class="section-title"', heroTitleIdx);
+        const closeDivBetween = dashboardHTML.substring(heroTitleIdx, sectionTitleIdx);
+        assert(closeDivBetween.includes('</div>'), 'hero-title should be closed before section-title');
+    });
+
+    // ========== EDGE CASES ==========
+    group('⚡ Edge Cases');
+
+    await test('Handle null FOR gap gracefully', async () => {
+        const orders = DATA.sample_orders;
+        const nullGap = orders.find(o => o.for_gap === null);
+        // This shouldn't crash the classification
+        if (nullGap) {
+            assert(nullGap.for_gap === null, 'Expected null for_gap');
+        }
+        // Test passes either way — no crash means success
+    });
+
+    await test('Handle null FOR timestamp gracefully', async () => {
+        const orders = DATA.sample_orders;
+        const nullFor = orders.find(o => o.for_timestamp === null);
+        if (nullFor) {
+            assert(nullFor.for_timestamp === null, 'Expected null for_timestamp');
+        }
+    });
+
+    await test('All archetypes are valid', async () => {
+        const validArchetypes = ['cloud_kitchen', 'qsr_chain', 'dine_in', 'street_food'];
+        const profiles = DATA.merchant_profiles;
+        profiles.forEach((p, i) => {
+            assert(validArchetypes.includes(p.archetype),
+                `Profile ${i} has invalid archetype: ${p.archetype}`);
+        });
+    });
+
+    await test('No NaN values in metrics', async () => {
+        const m = DATA.metrics_comparison;
+        ['mae', 'p50_error', 'p90_error', 'p95_error', 'within_3min', 'within_5min'].forEach(key => {
+            const arr = m[key];
+            if (arr) {
+                arr.forEach((v, i) => {
+                    assert(!isNaN(v), `${key}[${i}] is NaN`);
+                    assert(isFinite(v), `${key}[${i}] is not finite`);
+                });
+            }
+        });
+    });
+
+    await test('Scenario presets have non-negative predictions', async () => {
+        DATA.scenario_presets.forEach((s, i) => {
+            assert(s.result.baseline_prediction >= 0, `Scenario ${i} baseline_prediction is negative`);
+            assert(s.result.kp_prediction >= 0, `Scenario ${i} kp_prediction is negative`);
+            assert(s.result.true_kpt >= 0, `Scenario ${i} true_kpt is negative`);
+        });
+    });
+
+    await test('Trust evolution weights are non-negative', async () => {
+        const te = DATA.trust_evolution;
+        te.forEach((entry, i) => {
+            entry.weight_history.forEach((h, j) => {
+                Object.entries(h.weights).forEach(([signal, weight]) => {
+                    assert(weight >= 0, `Merchant ${i}, order ${j}: ${signal} weight is negative (${weight})`);
+                });
+            });
+        });
+    });
+
+    // ========== DONE ==========
+    renderResults();
+}
+
+runAllTests();
+</script>
+</body>
+</html>

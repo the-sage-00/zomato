@@ -188,13 +188,13 @@ GAMING = {
 }
 
 VIZ_COLORS = {
-    "background": "#0f0f23",
-    "card": "#1a1a2e",
-    "primary": "#ff4757",
-    "secondary": "#00d2ff",
+    "background": "#0a0a0a",
+    "card": "#141414",
+    "primary": "#E23744",
+    "secondary": "#e0e0e0",
     "success": "#2ecc71",
-    "warning": "#f39c12",
-    "danger": "#e74c3c",
-    "text": "#ffffff",
-    "muted": "#8892b0",
+    "warning": "#f59e0b",
+    "danger": "#E23744",
+    "text": "#f5f5f5",
+    "muted": "#777777",
 }

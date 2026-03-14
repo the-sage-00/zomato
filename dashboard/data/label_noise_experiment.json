@@ -3,54 +3,54 @@
     "noise_pct": 0.0,
     "noise_pct_label": "0%",
     "mae": 8.09,
-    "p90_error": 18.33
+    "p90_error": 18.42
   },
   {
     "noise_pct": 0.1,
     "noise_pct_label": "10%",
     "mae": 8.12,
-    "p90_error": 18.57
+    "p90_error": 18.64
   },
   {
     "noise_pct": 0.2,
     "noise_pct_label": "20%",
     "mae": 8.19,
-    "p90_error": 18.88
+    "p90_error": 18.9
   },
   {
     "noise_pct": 0.3,
     "noise_pct_label": "30%",
-    "mae": 8.24,
-    "p90_error": 18.78
+    "mae": 8.23,
+    "p90_error": 18.77
   },
   {
     "noise_pct": 0.4,
     "noise_pct_label": "40%",
     "mae": 8.32,
-    "p90_error": 19.02
+    "p90_error": 18.91
   },
   {
     "noise_pct": 0.5,
     "noise_pct_label": "50%",
-    "mae": 8.36,
-    "p90_error": 19.16
+    "mae": 8.37,
+    "p90_error": 19.14
   },
   {
     "noise_pct": 0.6,
     "noise_pct_label": "60%",
     "mae": 8.47,
-    "p90_error": 19.43
+    "p90_error": 19.34
   },
   {
     "noise_pct": 0.7,
     "noise_pct_label": "70%",
     "mae": 8.57,
-    "p90_error": 19.55
+    "p90_error": 19.52
   },
   {
     "noise_pct": 0.8,
     "noise_pct_label": "80%",
     "mae": 8.66,
-    "p90_error": 20.17
+    "p90_error": 20.15
   }
 ]

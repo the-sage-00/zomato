@@ -1,11 +1,12 @@
 const COLORS = {
-    danger: '#ef4444', warning: '#f59e0b', secondary: '#3b82f6',
-    success: '#10b981', purple: '#a855f7', muted: '#8888aa',
-    text: '#e0e0ff', card: '#12122a', grid: '#2a2a4a',
+    danger: '#E23744', warning: '#f59e0b', secondary: '#e0e0e0',
+    success: '#2ecc71', purple: '#E23744', muted: '#777',
+    text: '#f5f5f5', card: '#141414', grid: '#2a2a2a',
 };
 Chart.defaults.color = COLORS.text;
 Chart.defaults.borderColor = COLORS.grid;
 Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.maintainAspectRatio = false;
 
 const DATA = {};
 
@@ -30,8 +31,12 @@ function renderHeroStats() {
     if (!m) return;
     const blMAE = m.mae[0], kpMAE = m.mae[m.mae.length - 1];
     const blP90 = m.p90_error[0], kpP90 = m.p90_error[m.p90_error.length - 1];
-    document.getElementById('stat-mae-drop').textContent = `↓${Math.round((1 - kpMAE / blMAE) * 100)}%`;
-    document.getElementById('stat-p90-drop').textContent = `↓${Math.round((1 - kpP90 / blP90) * 100)}%`;
+    
+    const elements = document.querySelectorAll('.animate-num');
+    if (elements.length >= 2) {
+        elements[0].setAttribute('data-target', Math.round((1 - kpMAE / blMAE) * 100));
+        elements[1].setAttribute('data-target', Math.round((1 - kpP90 / blP90) * 100));
+    }
 }
 
 /* ==================== SECTION 2: DATA ==================== */
@@ -85,20 +90,7 @@ function renderFORPie() {
     });
 }
 
-function renderFORExamples() {
-    const ex = DATA.for_examples;
-    if (!ex) return;
-    const container = document.getElementById('for-examples-container');
-    const clsMap = { honest: 'fe-honest', rider_triggered: 'fe-rider', lazy: 'fe-lazy', missing: 'fe-missing' };
-    container.innerHTML = ex.map(e => `
-        <div class="for-example ${clsMap[e.behavior] || ''}">
-            <div class="fe-row"><span class="fe-label">Behavior</span><span><strong>${e.behavior.replace('_', ' ')}</strong></span></div>
-            <div class="fe-row"><span class="fe-label">True KPT</span><span>${e.true_kpt} min</span></div>
-            <div class="fe-row"><span class="fe-label">FOR Timestamp</span><span>${e.for_timestamp !== null ? e.for_timestamp + ' min' : '—'}</span></div>
-            <div class="fe-verdict">${e.verdict}</div>
-        </div>
-    `).join('');
-}
+/* renderFORExamples removed — no matching DOM element exists */
 
 function renderFORCards() {
     const container = document.getElementById('for-cards');
@@ -146,11 +138,35 @@ function renderTrustEvolution() {
     drawTrust(0);
     container.addEventListener('click', e => {
         const btn = e.target.closest('.trust-btn');
-        if (!btn) return;
-        container.querySelectorAll('.trust-btn').forEach(b => b.classList.remove('active'));
+        if (!btn || btn.id === 'btn-autoplay') return;
+        container.querySelectorAll('.trust-btn:not(#btn-autoplay)').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         drawTrust(parseInt(btn.dataset.idx));
     });
+
+    let autoPlayInterval = null;
+    const btnAutoplay = document.getElementById('btn-autoplay');
+    if (btnAutoplay) {
+        btnAutoplay.addEventListener('click', () => {
+            if (autoPlayInterval) {
+                clearInterval(autoPlayInterval);
+                autoPlayInterval = null;
+                btnAutoplay.textContent = '▶ Auto-Play';
+                btnAutoplay.style.color = 'var(--success)';
+                btnAutoplay.style.borderColor = 'var(--success)';
+            } else {
+                btnAutoplay.textContent = '⏸ Pause';
+                btnAutoplay.style.color = 'var(--warning)';
+                btnAutoplay.style.borderColor = 'var(--warning)';
+                let currentIdx = Array.from(container.querySelectorAll('.trust-btn:not(#btn-autoplay)')).findIndex(b => b.classList.contains('active'));
+                autoPlayInterval = setInterval(() => {
+                    const buttons = container.querySelectorAll('.trust-btn:not(#btn-autoplay)');
+                    currentIdx = (currentIdx + 1) % buttons.length;
+                    if (buttons[currentIdx]) buttons[currentIdx].click();
+                }, 2000); // Change chart every 2 seconds
+            }
+        });
+    }
 }
 
 function renderArchetypeHeatmap() {
@@ -273,26 +289,31 @@ function renderBiryaniTimeline() {
     const story = DATA.biryani_story;
     if (!story) return;
     const container = document.getElementById('biryani-container');
-    const maxTime = Math.max(story.true_kpt, story.without_kp.prediction, story.with_kp.prediction) + 15;
 
     function makePanel(timeline, cls) {
-        const events = timeline.events.sort((a, b) => a.time - b.time);
-        const eventsHTML = events.map(e => {
-            const left = (e.time / maxTime * 100).toFixed(1);
-            const width = Math.max(12, 100 / events.length - 5);
-            return `<div class="timeline-event te-${e.type}" style="left:${left}%;width:${width}%">${e.label}</div>`;
-        }).join('');
-        const waitCls = timeline.rider_wait > 5 ? 'bad' : 'good';
-        const coolCls = timeline.food_cool > 5 ? 'bad' : 'good';
+        const predError = Math.abs(timeline.prediction - story.true_kpt).toFixed(1);
+        const coolCls = timeline.food_cool > 10 ? 'bad' : 'good';
+        const errCls = predError > 5 ? 'bad' : 'good';
         return `
             <div class="timeline-panel">
                 <div class="timeline-title ${cls}">${timeline.label}</div>
-                <div class="timeline-bar">${eventsHTML}</div>
-                <div class="timeline-stat">
-                    <div class="ts-item"><span class="ts-label">Rider Wait:</span><span class="ts-val ${waitCls}">${timeline.rider_wait} min</span></div>
-                    <div class="ts-item"><span class="ts-label">Food Cooling:</span><span class="ts-val ${coolCls}">${timeline.food_cool} min</span></div>
-                    <div class="ts-item"><span class="ts-label">Predicted:</span><span class="ts-val">${timeline.prediction} min</span></div>
-                    <div class="ts-item"><span class="ts-label">Actual:</span><span class="ts-val">${story.true_kpt} min</span></div>
+                <div class="biryani-stats-grid">
+                    <div class="biryani-stat">
+                        <span class="biryani-stat-label">Predicted KPT</span>
+                        <span class="biryani-stat-val">${timeline.prediction} min</span>
+                    </div>
+                    <div class="biryani-stat">
+                        <span class="biryani-stat-label">Actual KPT</span>
+                        <span class="biryani-stat-val">${story.true_kpt} min</span>
+                    </div>
+                    <div class="biryani-stat">
+                        <span class="biryani-stat-label">Prediction Error</span>
+                        <span class="biryani-stat-val ${errCls}">${predError} min</span>
+                    </div>
+                    <div class="biryani-stat">
+                        <span class="biryani-stat-label">Food Cooling</span>
+                        <span class="biryani-stat-val ${coolCls}">${timeline.food_cool} min</span>
+                    </div>
                 </div>
             </div>
         `;
@@ -379,13 +400,99 @@ function setupNav() {
     document.querySelectorAll('.section').forEach(s => observer.observe(s));
 }
 
+/* ==================== ANIMATIONS ==================== */
+function initAnimations() {
+    // 1. Scroll Reveal (Intersection Observer)
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('active');
+            }
+        });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // 2. Number Counter Animation
+    const animateNumber = (el, target, isRaw) => {
+        let current = 0;
+        const increment = target / 60; // 60 frames approx 1 sec
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                current = target;
+                clearInterval(timer);
+            }
+            if (isRaw) {
+                el.textContent = Math.floor(current).toLocaleString();
+            } else {
+                el.textContent = '↓' + Math.floor(current) + '%';
+            }
+        }, 16);
+    };
+
+    const numObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && !entry.target.classList.contains('counted')) {
+                entry.target.classList.add('counted');
+                const target = parseInt(entry.target.getAttribute('data-target'));
+                if (!isNaN(target)) {
+                    animateNumber(entry.target, target, entry.target.classList.contains('animate-num-raw'));
+                }
+            }
+        });
+    }, { threshold: 0.5 });
+    document.querySelectorAll('.animate-num, .animate-num-raw').forEach(el => numObserver.observe(el));
+}
+
+/* ==================== SCROLL PROGRESS + SCROLL-TO-TOP ==================== */
+function initScrollFeatures() {
+    const progressBar = document.getElementById('scroll-progress');
+    const scrollTopBtn = document.getElementById('scroll-top');
+
+    window.addEventListener('scroll', () => {
+        // Progress bar
+        const scrollTop = window.scrollY;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+        if (progressBar) progressBar.style.width = progress + '%';
+
+        // Scroll-to-top button
+        if (scrollTopBtn) {
+            if (scrollTop > 400) {
+                scrollTopBtn.classList.add('visible');
+            } else {
+                scrollTopBtn.classList.remove('visible');
+            }
+        }
+    }, { passive: true });
+
+    if (scrollTopBtn) {
+        scrollTopBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+}
+
+/* ==================== LOADING OVERLAY ==================== */
+function hideLoadingOverlay() {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) {
+        overlay.classList.add('hidden');
+        setTimeout(() => overlay.remove(), 700);
+    }
+}
+
 /* ==================== INIT ==================== */
 async function init() {
+    initAnimations();
+    initScrollFeatures();
+
     await loadAllData();
+
     renderHeroStats();
     renderSampleData();
     renderFORPie();
-    renderFORExamples();
+    /* renderFORExamples removed */
     renderFORCards();
     renderTrustEvolution();
     renderArchetypeHeatmap();
@@ -399,5 +506,8 @@ async function init() {
     renderNoiseChart();
     renderScenarios();
     setupNav();
+
+    hideLoadingOverlay();
 }
 init();
+
