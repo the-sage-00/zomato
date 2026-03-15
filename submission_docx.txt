@@ -1,0 +1,223 @@
+KitchenPulse
+Multi-Signal Kitchen Load Estimation for Kitchen Prep Time (KPT) Prediction
+Problem Statement: PS1 — Kitchen Prep Time Prediction
+Team Name: Escape
+Submission Date: March 2026
+
+
+Supplementary Research & Technical Deep-Dive: See Link 1 (attached separately) for complete methodology, code, simulation data, and extended analysis.
+
+Table of Contents
+Problem Understanding & Root Cause
+The Core Insight
+The Cost of Bad KPT
+KitchenPulse — System Overview
+Signal Architecture
+Trust Engine
+Smart FOR — Fixing Labels at Source
+Dataset & Methodology
+Projected Results (Simulation-Backed)
+Rollout Plan
+Competitive Positioning
+Robustness & Edge Cases
+Impact Summary
+
+1. Problem Understanding & Root Cause
+Zomato predicts Kitchen Prep Time (KPT) to decide when to dispatch a rider. If KPT is wrong, a cascade of failures follows:
+Inaccurate KPT
+    ├── KPT underestimated → Rider dispatched too early → waits 7-15 min
+    │   └── ₹12-15 idle rider cost × 200K bad dispatches/day
+    │
+    ├── KPT overestimated → Rider dispatched late → food sits cooling
+    │   └── Bad food quality → bad rating → restaurant blames Zomato
+    │
+    └── KPT variance is high → ETA keeps jumping on customer screen
+        └── "Zomato ETAs are never right." → switches to Swiggy
+Why the model is NOT the problem
+Zomato’s KPT model already uses: order complexity, historical prep data, time-of-day, restaurant history, and reinforcement learning.
+The model architecture is fine. The LABELS it trains on are poisoned.
+The FOR (Food Order Ready) button — which provides ground-truth training labels — is systematically wrong. A perfect model trained on wrong labels produces wrong predictions. This is a data problem, not a model problem.
+
+2. The Core Insight — 70% of Labels Are Wrong
+Bottom line: ~70% of orders have corrupted training labels.
+Evidence This Is Real
+
+3. The Cost of Bad KPT
+At scale: 200,000 frustrated riders and disappointed customers every single day.
+The hidden metric — ETA Volatility:
+Most teams will show MAE/P90. Almost nobody will talk about ETA stability. But for Zomato’s product team, this is critical:
+Customer sees:  "Arriving in 25 min"
+  3 min later:  "Arriving in 32 min"   ← KPT recalculated
+  5 min later:  "Arriving in 28 min"   ← rider dispatched
+  2 min later:  "Arriving in 35 min"   ← rider stuck at restaurant
+
+Customer reaction: "This app has no clue. I'm going to Swiggy."
+Better KPT → first ETA is more accurate → fewer recalculations → customer perceives reliability → trust increases.
+
+4. KitchenPulse — System Overview
+One sentence: Multiple independent signals, weighted by per-merchant adaptive trust, replace a single gamed FOR button.
+    FOR (noisy) ──────────────┐
+                              │
+    Rider Dwell (passive) ────┤
+                              ├──► SIGNAL          ──► CLEANED KPT ──► BETTER
+    AKAI (real-time) ─────────┤    TRUST ENGINE          LABELS          DISPATCH
+                              │    (per-merchant     ──► MODEL RETRAIN
+    Merchant Behavior ────────┤     adaptive weights)
+                              │
+    External Busyness ────────┘
+
+    ┌─────────────────────────────────────────────────────┐
+    │  We don't replace Zomato's model.                   │
+    │  We clean its inputs.                               │
+    │  Fix the labels → model automatically improves.     │
+    └─────────────────────────────────────────────────────┘
+Real-World Walkthrough: Friday 8:15 PM — Biryani House, Koramangala
+The Kitchen Right Now: 12 walk-in customers, 4 Swiggy orders active, 3 Zomato orders active. Kitchen at 90% capacity.
+Zomato sees: Only 3 Zomato orders. Kitchen looks “free.”
+❌ WITHOUT KitchenPulse
+✅ WITH KitchenPulse
+
+5. Signal Architecture
+Tiered Hierarchy
+Why Dwell Beats FOR
+FOR  → SYSTEMATIC BIAS (always wrong in same direction) → model learns wrong
+Dwell → STOCHASTIC NOISE (random, averages out) → model learns through it
+
+For ML training: removing bias > reducing variance.
+Dwell Decomposition — raw rider GPS dwell ≠ kitchen wait. We remove: - T_approach (geofence entry → building entrance): 30 sec – 3 min - T_park (parking + walking to counter): 1 – 5 min - T_handoff (verification + packaging + exit): 30 sec – 2 min - GPS jitter: filtered via velocity filter
+Validated by: Honest-FOR merchants (Score >80) used as calibration benchmark. Cloud kitchens used for cross-validation (FOR ≈ dwell there).
+AKAI — The Leading Indicator
+Technical Spec: - Model: TensorFlow Lite audio classification - Size: <5 MB — runs on any Android phone from 2018+ - Processing: 100% on-device. No audio data ever leaves the phone. - Output: Kitchen activity level 1-10, emitted every 60 seconds - Privacy: Same architecture as Apple’s on-device “Hey Siri.” Audio → number → audio discarded.
+Tier 1 handles P50. AKAI handles P90 — the tail where historical patterns break.
+Merchant Segmentation
+
+6. Signal Trust Engine
+Per-Merchant Dynamic Trust Weights
+MERCHANT TRUST PROFILE — Example: Restaurant #48291 (Mid-range Dine-in)
+
+Signal               │ Weight │ Reason
+─────────────────────┼────────┼──────────────────────────────
+FOR Button           │  0.15  │ FOR pressed avg 8 sec AFTER rider arrival
+Corrected Dwell Time │  0.45  │ Low variance (σ=2.1 min)
+Merchant Behavior    │  0.20  │ Acknowledgment latency correlates r=0.71 with KPT
+AKAI                 │  0.10  │ Opted in, but data sparse
+External Busyness    │  0.10  │ Available, 30-min lag
+Cold Start Policy
+The math:
+KitchenPulse_Score = Σᵢ (wᵢ × sᵢ)    where Σwᵢ = 1
+
+Trust weight update:
+    w_new = α × accuracy_observed(last N orders) + (1-α) × w_old
+    α = 0.1 for stable merchants (>200 orders)
+    α = 0.3 for volatile/new merchants (<100 orders)
+Anti-dominance guardrail: Max 60% weight cap per signal. Requires ≥2 signals agreeing before major weight shifts. Prevents collapse to a single-signal system.
+
+7. Smart FOR — Fixing Labels at Source
+Phase 1 (correlator + calibration) requires ZERO merchant behavior change. Pure backend. Deployable in weeks.
+FOR Reliability Score Calculation
+Penalties:
+    FOR pressed within 60 sec AFTER rider arrival   → -30 points
+    FOR timing variance > 5 min (across orders)     → -20 points
+    FOR never pressed (>20% of orders)               → -40 points
+
+Bonuses:
+    FOR pressed 3-8 min BEFORE rider arrival         → +20 points
+    Consistent FOR timing (σ < 2 min)                → +15 points
+    Multi-stage FOR adopted AND used consistently     → +15 points
+
+SCORE TIERS:
+    80-100: "⚡ Fast Kitchen" badge → visibility perks
+    50-79:  Standard → no changes
+    <50:    FOR signal DOWN-WEIGHTED in KPT model + in-app coaching
+
+8. Dataset & Methodology
+Data Sources Used
+We did not have access to Zomato’s proprietary data. Per the problem statement, we curated our own dataset using:
+Synthetic Simulation Dataset
+Since ground-truth KPT data is unavailable, we designed a principled simulation to validate the approach:
+SIMULATION CONFIGURATION
+─────────────────────────────────────────────────
+Merchants:        1,000 (250 per archetype)
+Orders/merchant:  100-500 (30-day simulation)
+Total orders:     ~300,000
+
+TRUE KPT GENERATION:
+    Base KPT ~ LogNormal(μ=15, σ=8) minutes
+    Modified by:
+        time_of_day_factor: lunch (1.4x), dinner (1.3x), late-night (0.8x)
+        order_complexity:   simple (0.7x), medium (1.0x), complex (1.5x)
+        walk_in_load:       Poisson(λ) where λ = archetype_factor × time_factor
+
+FOR NOISE INJECTION (archetype-specific):
+    Cloud Kitchen:  70% honest, 15% lazy, 10% rider-triggered, 5% missing
+    QSR:            60% honest, 20% lazy, 10% rider-triggered, 10% missing
+    Dine-in:        25% honest, 20% lazy, 40% rider-triggered, 15% missing
+    Street Food:    30% honest, 25% lazy, 30% rider-triggered, 15% missing
+
+DWELL TIME GENERATION:
+    raw_dwell = true_kitchen_wait + T_approach + T_park + T_handoff + GPS_jitter
+    (Gaussian distributions with archetype-appropriate parameters)
+Models Compared
+
+9. Projected Results (Simulation-Backed)
+Why These Numbers Are Honest
+We cap at 72% (not 95%) because some KPT variance is genuinely unpredictable — chef issues, equipment failure, sudden rush from events.
+AKAI (KP-Full) adds primarily tail-risk value: P90 drops from 8.2 → 7.1 min (13% tail improvement) — exactly where AKAI earns its keep.
+Sensitivity analysis: If dwell noise increases by 50%, MAE improvement drops from 37% to ~28%. System degrades gracefully, not catastrophically.
+Financial Impact
+AT ZOMATO'S SCALE (2M orders/day)
+
+Current avg rider wait: ~8.3 min | Phase 3 avg rider wait: ~4.3 min
+Rider idle cost: ~₹2/min
+
+Savings per order: 4 min × ₹2 = ₹8
+Theoretical annual savings: ₹576 Crore/year
+Conservative (30% realization): ₹170 Crore/year
+Even at 20% realization:         ₹115 Crore/year
+
+10. Rollout Plan
+Phase 1 — “Clean the Labels” (Week 1-4, ZERO infra change)
+Zero hardware. Zero merchant training. Zero app changes. Pure backend patch.
+Expected by Week 4: P90 rider wait: 14.1 min → ~10.5 min (↓26% in 30 days)
+Deployable via shadow mode → A/B test → gradual rollout. Zero risk.
+Phase 2 — “Segment & Personalize” (Week 5-12)
+Merchant archetype classification (4 types)
+Per-archetype signal weight priors
+Signal Trust Engine v1 (personalized weights per merchant)
+Predictive FOR nudge notifications
+A/B test Multi-Stage FOR with 5K merchants
+Launch “⚡ Fast Kitchen” badge program
+Expected impact: MAE ↓37%, P90 ↓42%
+Phase 3 — “Enrich Signals” (Week 13-24)
+AKAI deployment to opted-in merchants
+Google Popular Times / BestTime API integration
+Full adaptive Signal Trust Engine v2
+Cold start → blended → personalized pipeline live
+Expected impact: MAE ↓45%, P90 ↓50%
+Phase 4 — “Deep Integration” (Month 7+, Premium Track)
+POS integration (Petpooja, Posist — India’s top POS providers)
+Lightweight KDS in Zomato merchant app
+Full order visibility across ALL channels
+
+11. Competitive Positioning
+Why Other Approaches Fall Short
+Why KitchenPulse Wins
+We fix the data layer WITHOUT requiring 300K merchants to change behavior.
+Phase 1 uses data Zomato ALREADY collects. No hardware. No merchant cooperation. No app changes.
+Zero cost. Zero friction. Immediate improvement.
+Every YC startup and competitor builds FROM the restaurant outward — needing restaurant cooperation and adoption. KitchenPulse works WITHOUT restaurant cooperation. Tier 1 signals (dwell time, FOR validation) use data Zomato already collects.
+
+12. Robustness & Edge Cases
+KitchenPulse doesn’t claim to solve 100% of cases. It claims to solve the 70% that are currently broken. For the genuinely unpredictable 30%, we widen the ETA uncertainty buffer and communicate honestly: “Estimated 20-30 min” instead of falsely precise “Arriving in 23 min.”
+
+13. Impact Summary
+Metric Mapping
+The One-Liner
+“We’re not asking Zomato to rebuild its system. We’re asking it to stop training on lies.”
+
+Links
+[Link 1] — Extended Technical Research Report (Full methodology, code, simulation analysis, judge objection defenses):
+[link]
+
+Team Escape — KitchenPulse | Zomato Hackathon 2026
+Rishi · Ritesh Kumar · Shivam Pareek

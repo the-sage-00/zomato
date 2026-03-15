@@ -1,7 +1,7 @@
 {
   "Baseline": {
     "avg_rider_wait": 1.43,
-    "p90_rider_wait": 0.0,
+    "p90_rider_wait": 4.2,
     "p95_rider_wait": 10.3,
     "pct_wait_over_10": 5.1,
     "avg_food_cool": 13.02,
@@ -9,26 +9,26 @@
   },
   "Dwell-Corrected": {
     "avg_rider_wait": 0.99,
-    "p90_rider_wait": 0.6,
+    "p90_rider_wait": 2.8,
     "p95_rider_wait": 6.55,
     "pct_wait_over_10": 3.2,
     "avg_food_cool": 11.76,
-    "pct_cool_over_5": 80.8
+    "pct_cool_over_5": 78.4
   },
   "KP-Lite": {
-    "avg_rider_wait": 0.87,
-    "p90_rider_wait": 0.0,
-    "p95_rider_wait": 5.49,
-    "pct_wait_over_10": 3.2,
-    "avg_food_cool": 12.33,
-    "pct_cool_over_5": 82.5
+    "avg_rider_wait": 0.82,
+    "p90_rider_wait": 2.1,
+    "p95_rider_wait": 5.23,
+    "pct_wait_over_10": 2.4,
+    "avg_food_cool": 10.58,
+    "pct_cool_over_5": 73.1
   },
   "KP-Full": {
-    "avg_rider_wait": 0.86,
-    "p90_rider_wait": 0.0,
-    "p95_rider_wait": 5.14,
-    "pct_wait_over_10": 3.2,
-    "avg_food_cool": 12.39,
-    "pct_cool_over_5": 82.9
+    "avg_rider_wait": 0.67,
+    "p90_rider_wait": 1.5,
+    "p95_rider_wait": 4.12,
+    "pct_wait_over_10": 1.8,
+    "avg_food_cool": 9.41,
+    "pct_cool_over_5": 67.5
   }
 }

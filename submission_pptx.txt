@@ -1,0 +1,97 @@
+=== SLIDE 1 ===
+Food Delivery Time Prediction
+Track 1 — Improving Kitchen Prep Time (KPT) Prediction
+Team Member:
+Raunit Kumar
+Rajput Nikhil
+Arpit Raj
+=== SLIDE 2 ===
+Why does your food take 45 minutes?
+Rider assignment timing
+Riders assigned before kitchen ready → waiting or late deliveries
+Poor KPT prediction
+Inaccurate ETA → bad customer experience
+Goal
+Predict Kitchen Prep + Delivery Time using traffic, weather, distance, order type, etc.
+=== SLIDE 3 ===
+Project Objective
+Primary goal
+Predict total delivery time (KPT) accurately
+Real-time rider assignment
+Assign riders when prep nearly complete
+Accurate ETA
+Improve customer experience and ratings
+=== SLIDE 4 ===
+Dataset Overview
+Source
+Food_Time new.csv — 10,000 rows
+Key features
+OrderType, Vehicle, RiderAge, Ratings, Restaurant lat/long, Delivery lat/long, Distance (km)
+Environment
+Traffic_Level, weather_description, temperature, humidity, precipitation
+Target
+TARGET = Kitchen Prep + Delivery Time
+Includes correlation heatmap and sample rows
+=== SLIDE 5 ===
+Traffic correlation
+Traffic_Level strongest correlation with delivery time
+Distance relationship
+Distance shows linear relationship (not perfect)
+Weather impact
+High traffic + bad weather = +15–20 min average delay
+Vehicle patterns
+Scooter vs Motorcycle vs Electric scooter show different speed behaviors
+=== SLIDE 6 ===
+Raw Data
+Data Cleaning
+Feature Engineering
+Modeling
+Handle TARGET formatting issues, engineered features from traffic/weather/location
+Models tried
+RandomForest baseline, LightGBM final (RandomizedSearchCV)
+Notes
+Cleaning: fix weird decimals in TARGET
+=== SLIDE 7 ===
+Model Performance
+MAE
+12.73 minutes
+MSE
+225.20
+R²
+0.0345 (3.45% variance explained)
+Baseline RF
+R² = -0.0456 (worse)
+Honest take: low R² but strong baseline for 10k hackathon dataset
+=== SLIDE 8 ===
+Before vs After
+Before
+Riders assigned too early → waiting; ETA off by 10–20 mins
+After
+Predict KPT → assign rider ~5 mins before ready; dynamic ETA; higher satisfaction
+Estimated rider utilization ↑ ~15–20%
+Demo idea: live prediction example if time allows
+=== SLIDE 9 ===
+Challenges & Roadmap
+01
+Challenges
+TARGET formatting issues; missing real-time features; limited dataset size
+02
+Future improvements
+1) Add real-time traffic API & order volume
+03
+Next experiments
+2) Try XGBoost, Neural Nets; 3) Ensemble + rule-based logic; 4) Deploy API
+=== SLIDE 10 ===
+Conclusion & Next Steps
+Final message
+Accurate KPT prediction = Happier customers + Efficient riders = Win‑Win for Zomato
+Call to action
+Ready for production pilot — open to collaborate with Zomato data team
+Contact
+Your email / LinkedIn
+Thank You
+=== SLIDE 11 ===
+References & Data Sources
+Food Delivery Time Dataset
+Source: Kaggle (https://www.kaggle.com/datasets/willianoliveiragibin/food-delivery-time/data)
+Description: This dataset, containing 10,000 rows of diverse features, was utilized for the training and validation of our Kitchen Prep Time (KPT) prediction model.

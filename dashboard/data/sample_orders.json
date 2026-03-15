@@ -29,7 +29,7 @@
     "ack_latency": 15.2,
     "google_busyness": 0.0,
     "baseline_pred": 27.2,
-    "kp_pred": 13.7
+    "kp_pred": 14.7
   },
   {
     "order_id": 422,
@@ -45,7 +45,7 @@
     "ack_latency": 15.1,
     "google_busyness": 0.0,
     "baseline_pred": 14.4,
-    "kp_pred": 14.3
+    "kp_pred": 14.4
   },
   {
     "order_id": 1392,
@@ -61,7 +61,7 @@
     "ack_latency": 16.1,
     "google_busyness": 0.0,
     "baseline_pred": 15.0,
-    "kp_pred": 13.7
+    "kp_pred": 14.7
   },
   {
     "order_id": 77063,
@@ -77,7 +77,7 @@
     "ack_latency": 27.4,
     "google_busyness": 0.24,
     "baseline_pred": 37.8,
-    "kp_pred": 37.7
+    "kp_pred": 37.8
   },
   {
     "order_id": 77959,
@@ -93,7 +93,7 @@
     "ack_latency": 10.5,
     "google_busyness": 0.0,
     "baseline_pred": 27.3,
-    "kp_pred": 15.7
+    "kp_pred": 16.9
   },
   {
     "order_id": 78438,
@@ -109,7 +109,7 @@
     "ack_latency": 12.2,
     "google_busyness": 0.06,
     "baseline_pred": 20.5,
-    "kp_pred": 20.4
+    "kp_pred": 20.5
   },
   {
     "order_id": 79250,
@@ -125,7 +125,7 @@
     "ack_latency": 33.5,
     "google_busyness": 0.28,
     "baseline_pred": 15.0,
-    "kp_pred": 18.7
+    "kp_pred": 16.9
   },
   {
     "order_id": 150668,
@@ -141,7 +141,7 @@
     "ack_latency": 38.2,
     "google_busyness": 0.68,
     "baseline_pred": 59.4,
-    "kp_pred": 66.7
+    "kp_pred": 59.2
   },
   {
     "order_id": 151517,
@@ -157,6 +157,6 @@
     "ack_latency": 40.2,
     "google_busyness": 0.56,
     "baseline_pred": 46.8,
-    "kp_pred": 57.3
+    "kp_pred": 47.4
   }
 ]
