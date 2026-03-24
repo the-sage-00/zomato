@@ -16,19 +16,19 @@
     "pct_cool_over_5": 80.8
   },
   "KP-Lite": {
-    "avg_rider_wait": 0.87,
-    "p90_rider_wait": 0.0,
-    "p95_rider_wait": 5.49,
+    "avg_rider_wait": 1.0,
+    "p90_rider_wait": 0.82,
+    "p95_rider_wait": 6.85,
     "pct_wait_over_10": 3.2,
-    "avg_food_cool": 12.33,
-    "pct_cool_over_5": 82.5
+    "avg_food_cool": 11.77,
+    "pct_cool_over_5": 81.0
   },
   "KP-Full": {
-    "avg_rider_wait": 0.86,
-    "p90_rider_wait": 0.0,
-    "p95_rider_wait": 5.14,
-    "pct_wait_over_10": 3.2,
-    "avg_food_cool": 12.39,
-    "pct_cool_over_5": 82.9
+    "avg_rider_wait": 2.16,
+    "p90_rider_wait": 9.03,
+    "p95_rider_wait": 14.62,
+    "pct_wait_over_10": 8.9,
+    "avg_food_cool": 9.47,
+    "pct_cool_over_5": 69.9
   }
 }
