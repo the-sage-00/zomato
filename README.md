@@ -1,10 +1,9 @@
 <div align="center">
-  <img src="https://upload.wikimedia.org/wikipedia/commons/b/bd/Zomato_Logo.svg" alt="Zomato Logo" width="150" />
+  <img src="https://upload.wikimedia.org/wikipedia/commons/b/bd/Zomato_Logo.svg" alt="Zomato" width="150" />
   <h1>🔬 KitchenPulse</h1>
   <p><b>Multi-Signal Kitchen Load Estimation for KPT Prediction</b></p>
   <p><i>"Fix the labels — and the model fixes itself."</i></p>
   <p>
-    <img src="https://img.shields.io/badge/Team-Escape-red?style=for-the-badge&logo=zomato" alt="Team Escape" />
     <img src="https://img.shields.io/badge/Status-Completed-success?style=for-the-badge" alt="Status" />
     <img src="https://img.shields.io/badge/Impact-₹170Cr%20Savings-green?style=for-the-badge" alt="Impact" />
   </p>
@@ -12,121 +11,123 @@
 
 <hr>
 
-## 🚨 The Core Problem: The Data is Broken, Not the Model
+## 📖 The Story: Understanding the Problem from the Basics
 
-Zomato relies on predicting **KPT (Kitchen Preparation Time)** to decide when to dispatch delivery riders. Accurate predictions mean hot food and zero wait times. However, the current model struggles because it relies on the **FOR (Food Order Ready)** button pressed by merchants.
+Imagine you order a biryani on Zomato. The app says it will arrive in 25 minutes. Then it changes to 32. Then 28. Then 35. You close the app frustrated. This happens to millions of orders every day. 
 
-Our research revealed a harsh truth: **70% of the FOR data is a lie.**
+Why does this happen? Zomato relies on a prediction called **KPT (Kitchen Preparation Time)**. If they can perfectly guess how long a restaurant takes to cook your food, they can send a delivery rider at the *exact* moment the food comes out of the kitchen.
+- **If the rider arrives too early:** The rider waits (costing Zomato ₹12-15 in idle time) and rider earnings drop.
+- **If the rider arrives too late:** The food gets cold, the customer gives a 1-star rating, and the restaurant blames Zomato for sending the rider late.
+
+### How does Zomato currently predict KPT?
+Zomato has a massive Machine Learning (ML) model that processes variables like dish complexity, time-of-day, and weather. But how does an ML model learn? It needs *data* to know if its past guesses were right or wrong. Currently, Zomato's ML model learns entirely from the **FOR (Food Order Ready) button**—a button on the restaurant's Zomato tablet that a chef or manager is supposed to tap the exact moment the food is cooked.
+
+### The Breakthrough Realization: The Data is a Lie
+The obvious hackathon solution is to "build a faster ML model." But our early research revealed a harsh truth: **Zomato's ML model is actually completely fine; the issue is that 70% of the FOR button data it trains on is a lie.**
 
 <div align="center">
   <table>
     <tr>
       <th>Fraud Type</th>
       <th>Prevalence</th>
-      <th>Impact</th>
+      <th>What happens in the kitchen?</th>
+      <th>The Impact on Zomato's ML</th>
     </tr>
     <tr>
-      <td><b>Rider-Triggered</b></td>
+      <td><b>Rider-Triggered Fraud</b></td>
       <td>~35%</td>
-      <td>Merchants press FOR only when the rider arrives. The system drastically underestimates actual prep time.</td>
+      <td>The restaurant is busy, so they only tap "Ready" when the delivery rider actually walks in the door and screams for the food.</td>
+      <td>The ML model is fed impossibly fast prep times. It drastically underestimates future orders.</td>
     </tr>
     <tr>
       <td><b>Lazy Press</b></td>
       <td>~18%</td>
-      <td>Merchants forget, pressing it late. The system overestimates prep time.</td>
+      <td>The chef cooks the food, forgets to tap the button, continues cooking, and finally taps it 15 minutes later.</td>
+      <td>The ML model is fed impossibly slow prep times. It overestimates future orders.</td>
     </tr>
     <tr>
-      <td><b>Missing</b></td>
+      <td><b>Missing Data</b></td>
       <td>~12%</td>
-      <td>Merchants never press it at all. Complete data blindspot.</td>
+      <td>The restaurant never presses it at all.</td>
+      <td>A complete data blindspot.</td>
     </tr>
     <tr>
-      <td><b>Honest</b></td>
+      <td><b>Honest Merchants</b></td>
       <td>~30%</td>
-      <td>The only reliable data Zomato currently trains on.</td>
+      <td>The restaurant taps it exactly when cooked.</td>
+      <td>The only reliable data Zomato currently has.</td>
     </tr>
   </table>
 </div>
 
-**Every day, 1.4 million wrong training labels feed into the ML model.** When KPT is underestimated, riders arrive early and idle (₹12-15 wasted per rider). When overestimated, the food sits on the counter and gets cold (1-star reviews).
-
-### The Solution Objective
-Zomato explicitly asked the hackathon: **"Improve signals, not models."** KitchenPulse is the solution.
+**Every day, 1.4 million wrong training labels feed into the ML model.** No matter how advanced your neural network architecture is, if you train it on bad data, it outputs bad results. 
 
 ---
 
-## 🛠️ The KitchenPulse Architecture: 5 Signals > 1 Button
+## 🛠️ The Solution: KitchenPulse Architecture
 
-We replace the reliance on a single, easily falsified button with a **Multi-Signal Triangulation** architecture. 
+Zomato explicitly posed a challenge to us in this Hackathon: **"Improve signals, not models."** 
+
+Our solution is **KitchenPulse**: A system that stops relying blindly on one easily faked button, and instead triangulates the *true* prep time using 5 independent, ambient signals.
 
 ### 🟢 Tier 1: Zero Cost (Primary Ground Truth)
-1. **Corrected Rider Dwell Time**: GPS data is noisy (parking, walking). We decompose the GPS trace to find the *pure kitchen wait time*. It's a zero-fraud, purely observational signal.
-2. **Smart FOR Validation**: We don't discard the FOR button; we grade it. If pressed within 60 seconds of a rider arriving, it's flagged and ignored in training.
+Instead of asking the restaurant, we passively measure them:
+1. **Corrected Rider Dwell Time**: Zomato has GPS data tracking when the rider enters the restaurant and when they leave. However, GPS is noisy (did the rider take 5 minutes parking their bike or finding the right floor in a mall?). We mathematically *decompose* the GPS trace:
+   `Pure Kitchen Wait = Total Dwell Time - (Parking Time + Approach Time + Handoff Time)`
+   This removes the noise and gives us the absolute, un-faked reality of how long the food actually took.
+2. **Smart FOR Validation**: We don't throw away the FOR button entirely; we grade it. If a restaurant presses their button within 60 seconds of a rider physically arriving, our system spots the anomaly, flags the merchant for "Rider-Triggered Fraud," and immediately ignores their button presses from the ML training loop going forward.
 
-### 🔵 Tier 2: Low-Friction Enhancers
-3. **Merchant Behavioral Signals**: App interaction patterns. If the merchant's latency in acknowledging a new order spikes, the kitchen is overwhelmed. 
-4. **AKAI (Ambient Kitchen Activity Index)**: A leading indicator. A tiny, local LLM/TFLite model runs on the merchant tablet, analyzing background audio (decibel levels + noise patterns) to detect a rush *before* Zomato dispatch even happens. No audio is transmitted; only a 1-10 rush score.
+### 🔵 Tier 2: Low-Friction Enhancers (Real-Time Sensing)
+Dwell time tells us how long a *past* order took. But what if a massive rush starts *right now*?
+3. **Merchant Behavioral Signals**: If a restaurant is suddenly taking 2-3 extra minutes just to tap the "Accept Order" notification, we know the kitchen is overwhelmed and staff are distracted. We use app interaction latency as a live stress signal.
+4. **AKAI (Ambient Kitchen Activity Index)**: A leading indicator. A tiny, 5MB local ML model runs directly on the merchant's Zomato tablet, analyzing ambient background audio (decibel levels + frequency of shouts/pans) to detect a kitchen rush *before* Zomato dispatch even happens. Complete privacy—no audio is transmitted to the cloud, just a 1-10 "rush score."
 
 ### 🟠 Tier 3: External Context
-5. **External Busyness (Google Popular Times)**: Free crowdsourced foot traffic data. Zomato might only see 3 app orders, but 20 dine-in customers mean the kitchen is slammed.
+5. **External Busyness (Google Popular Times Integration)**: Free crowdsourced foot traffic data. Zomato might only see 3 app orders assigned to a kitchen, but if Google Maps says there are 40 dine-in customers swarming the location, the kitchen is slammed.
 
 ---
 
-## 🧠 The Innovation: Adaptive Trust Engine
+## 🧠 The Core Innovation: The Adaptive Trust Engine
 
-The brain of KitchenPulse is a dynamically adjusting system that scores each merchant's reliability.
+Because every restaurant is vastly different (a street food stall vs. a hyper-efficient cloud kitchen vs. a massive dine-in restaurant), treating them equally is a failure point. The brain behind KitchenPulse is a dynamically adjusting Trust Engine that scores each merchant's data reliability live.
 
-* **Self-Healing Weights**: Every restaurant gets a dynamic profile. If a dine-in restaurant constantly games the FOR button, the Trust Engine detects it, drops the FOR weight from 0.40 to 0.05, and elevates Dwell Time. The system figures out the merchant is lying and stops believing them.
-* **Archetype Priors (Peer Learning)**: New restaurants start with average weights based on their archetype (Cloud Kitchen, QSR, Dine-in, Street Food). 
+* **Self-Healing Weights**: Every restaurant gets a dynamic profile. If a dine-in restaurant constantly games the FOR button, the Trust Engine catches the statistical anomaly. It dynamically drops the FOR signal weight from 40% to 5%, and elevates the Dwell Time tracking weight to 80%. **The system figures out the merchant is lying and automatically stops believing them without human intervention.**
+* **Archetype Priors (Peer Learning)**: When a brand new restaurant joins Zomato, the Trust Engine assigns them average weights based on their archetype. For instance, Cloud Kitchens inherently have far more reliable FOR buttons because they have no dine-in customers to distract them.
 
-> **Result:** No manual intervention is needed. The system catches fraud automatically and self-corrects the data pipeline.
-
----
-
-## 🔬 The 7-Iteration Debugging Journey
-
-We built a massive simulation of **304,046 orders** across 1,000 merchants. Getting the system to beat Zomato's baseline was a rigorous 7-step optimization process:
-
-| Iteration | The Problem Encountered | Root Cause | The Fix & Lesson Learned |
-|:---:|---|---|---|
-| **1** | All models worse than baseline (MAE ~16.8) | Fixed base constant vs actual mean. | **Fix:** Use historical averages. **Lesson:** Never hardcode base values for high-variance targets. |
-| **2** | Models stuck at ~15 MAE | Self-referencing prediction loop. | **Fix:** Anchor to FOR history. **Lesson:** Never predict iteratively from your own outputs. |
-| **3** | Dwell estimate broken | Dwell measures *wait* time, not prep time. | **Fix:** Use `rider_arrival + dwell`. **Lesson:** Mathematically align signal definitions. |
-| **4** | Zero "honest" merchants | `suspicious_late` threshold too tight. | **Fix:** Raise threshold from 3 to 8 mins. **Lesson:** Calibrate thresholds to actual data distributions. |
-| **5** | KitchenPulse worse than Baseline | Rider-triggered merchants had 0 valid history. | **Fix:** Cross-merchant learning required. |
-| **6** | KP still worse than Dwell-Corrected | Contextual adjustments adding too much noise. | **Fix:** **Archetype Priors** introduced. Fallback to honest merchants of the same type. *(Huge Breakthrough!)* |
-| **7** | **Final Winning Architecture** | Models restarting instead of layering. | **Fix:** Chain the models systematically: `Baseline → DC → KP-Lite → KP-Full`. Apply micro-adjustments only. |
-
-*You can read the full, in-depth journey in the [`research/DEBUGGING_JOURNEY.md`](research/DEBUGGING_JOURNEY.md) document.*
+> **Result:** The data pipeline dynamically self-corrects and heals, generating the cleanest KPT training data Zomato has ever seen.
 
 ---
 
-## 📊 Business Impact & Results
+## 🔬 Deep-Dive Research & The 7-Iteration Debugging Journey
 
-The simulation conclusively mathematically proves the architecture. By simply cleaning the data Zomato feeds its models, the impact is immense:
+We didn't just design this theoretically; we mathematically validated everything. We built a massive python simulation of **304,046 orders** across 1,000 restaurants utilizing M/D/1 Queueing theory constraints. Getting the system to beat Zomato's current ML baseline was a rigorous 7-step data optimization process:
 
-* **📉 ↓ 31% Reduction in P90 Wait Time** (Worst-case rider wait dropped from 23.1 to 16.0 minutes)
-* **📉 ↓ 16% Reduction in Mean Absolute Error (MAE)** (7.15 → 6.0 minutes)
-* **📉 ↓ 40% Drop in Average Rider Wait** (1.43 mins → 0.86 mins)
-* **✅ 1.4 Million Bad Labels Fixed Daily**
+| Iteration | The Problem Encountered & The Failure Mode | The Fix & Key Scientific Insight Learned |
+|:---:|---|---|
+| **1: Hardcoded Constants** | All models performed worse than baseline (MAE ~16.8). We hardcoded a base assumption. | **Fix:** Implement historical averages instead of constants. Never hardcode base values for high-variance targets. |
+| **2: The Prediction Loop** | Models were stuck at ~15 MAE. We created a self-referencing feedback loop. | **Fix:** Anchor mathematical equations to the raw FOR history. Never predict iteratively strictly from your own outputs. |
+| **3: Dwell Measurement** | The Dwell estimate was broken because dwell measures *wait* time, not absolute *prep* time. | **Fix:** Mathematically align definitions. `Actual Prep = Rider Arrival Timestamp + Pure Dwell Time.` |
+| **4: Threshold Sensitivity** | The system detected zero "honest" merchants. The flagging threshold was too sensitive. | **Fix:** Raise the flag threshold from 3 to 8 minutes. Always calibrate algorithmic thresholds directly to data distributions. |
+| **5: Zero History Data** | The KitchenPulse model was worse than the Baseline because merchant fraudsters had 0 valid history to learn from once we discarded their broken data. | **Fix:** Implement cross-merchant peer-learning algorithms to substitute history. |
+| **6: Archetype Breakthrough**| The KitchenPulse still fell behind simple Dwell averages due to massive noise in external context inputs. | **Fix:** Introduction of **Archetype Priors**. We used statistical fallbacks mapped uniquely to Cloud, QSR, and Dine-in archetypes. *(Massive Breakthrough!)* |
+| **7: Final Polish** | The models were conflicting and restarting instead of compounding learning. | **Fix:** Chain the models systematically: `Baseline → DC → KP-Lite → KP-Full`, applying micro-adjustments only. |
+
+*You can read our full mathematical and scientific debug logs in our [`research/DEBUGGING_JOURNEY.md`](research/DEBUGGING_JOURNEY.md) document.*
+
+---
+
+## 📊 Business Impact & Simulation Results
+
+The simulation mathematically proves the architecture's power. By simply filtering the noise out of the raw data Zomato feeds to its ML models, the downstream impact is immense:
+
+* **📉 ↓ 31% Reduction in P90 Wait Time**: The absolute worst-case scenario rider waits (the top 10% of terrible, cold-food orders) plummeted from 23.1 minutes to 16.0 minutes.
+* **📉 ↓ 16% Reduction in Mean Absolute Error (MAE)**: The standard prediction error dropped cleanly from 7.15 → 6.0 minutes.
+* **📉 ↓ 40% Drop in Average Rider Wait**: The average rider idle time dropped from 1.43 mins → 0.86 mins, nearly perfectly aligning the exact rider arrival with the chef packaging the food.
 
 ### 💰 Estimated Savings: **₹170 Crore Annually**
-Calculated via recovered idle rider time (₹12-15 salvaged per rider on poorly predicted orders) and reduced order cancellation/churn.
-
-### 🚀 Deployment Plan (Zero Cost)
-This involves *Zero hardware*, *Zero merchant training*, and *Zero app changes*. It is a pure backend patch.
-1. **Shadow Mode (Week 1-2):** Run KitchenPulse in parallel.
-2. **A/B Test (Week 3-6):** Route 5% orders via KP.
-3. **Full Rollout:** Scale to all 300K merchants.
-
----
-
-## 👨‍💻 Team Escape
-* **Rishi** - System Design + Trust Engine
-* **Ritesh Kumar** - Simulation + Data Pipeline
-* **Shivam Pareek** - Dashboard + Visualization
+Zomato explicitly mentioned the cost of idle rider time is ₹12-15 per hour on poorly predicted orders. By scaling KitchenPulse across 2M daily Zomato orders, we recover thousands of idle rider hours and vastly reduce direct customer order cancellations resulting from ETA volatility.
 
 <div align="center">
   <br>
-  <i>"We are not building Zomato a new brain. We are cleaning the lies that the current brain is learning from."</i>
+  <i>"We are not building Zomato a new brain. We are simply giving its current brain the truth."</i>
 </div>
